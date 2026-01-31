@@ -522,9 +522,12 @@ const currentLang = languages.find(l => l.code.toLowerCase() === currentLocale) 
 const effectiveTranslations: Locale[] = availableTranslations.length > 0
   ? availableTranslations
   : [currentLocale]; // If not provided, only show current locale
+
+// CMS URL for client-side navigation API calls
+const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
 ---
 
-<aside class="sidebar">
+<aside class="sidebar" data-cms-url={cmsUrl}>
   <!-- Logo / Site Name -->
   <div class="sidebar-header">
     <a href="/" class="flex items-center gap-3">
@@ -1015,7 +1018,7 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
     return 'en';
   }
 
-  // Fetch folder content from API
+  // Fetch folder content from CMS API
   async function fetchFolderContent(collection: string, folder: string): Promise<FolderItem[]> {
     const locale = getCurrentLocale();
     const cacheKey = `${collection}/${folder}/${locale}`;
@@ -1024,7 +1027,13 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
     }
 
     try {
-      const response = await fetch(`/api/navigation?collection=${collection}&folder=${folder}&locale=${locale}`);
+      // Use CMS API directly (server-rendered endpoint, works with static builds)
+      const sidebar = document.querySelector('.sidebar') as HTMLElement;
+      const cmsUrl = sidebar?.dataset.cmsUrl || '';
+      const apiUrl = cmsUrl
+        ? `${cmsUrl}/api/docs/navigation?collection=${collection}&folder=${folder}&locale=${locale}`
+        : `/api/navigation?collection=${collection}&folder=${folder}&locale=${locale}`;
+      const response = await fetch(apiUrl);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       folderCache[cacheKey] = data.items || [];

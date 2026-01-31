@@ -1,13 +1,14 @@
 /**
- * Navigation API - Returns folder navigation tree for lazy loading
- * Used by the sidebar to load product folder content dynamically
+ * Navigation API - DEPRECATED
+ *
+ * This endpoint only works in dev mode (Astro static builds prerender it without query params).
+ * In production, the sidebar fetches navigation data directly from the CMS API
+ * at /api/docs/navigation on the CMS server.
+ *
+ * Kept as a dev-mode fallback only.
  */
 
-// NOTE: This API works in dev mode (Astro serves all pages dynamically).
-// For production static builds, the sidebar fetches navigation data
-// directly from the CMS API instead of this endpoint.
-// If you switch to hybrid/server mode, uncomment the line below:
-// export const prerender = false;
+// export const prerender = false; // Only works in hybrid/server mode
 
 import type { APIRoute } from 'astro';
 import { getDocuments, getFolderSettings, type Document, type FolderSettingsMap } from '../../lib/cms';
