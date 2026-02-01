@@ -21,7 +21,7 @@ category: Device Management
 section: Android MDM
 type: article
 canonical: >-
-  https://learn.applivery.com/docs/endpoint-management/android/agent-features/overview/
+  https://learn.applivery.com/docs/device-management/android/agent-features/overview/
 audience: developers
 difficulty: intermediate
 platform: Android

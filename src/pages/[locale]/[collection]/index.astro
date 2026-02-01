@@ -3,7 +3,7 @@
  * Collection index page with locale support
  * URL: docs.applivery.com/{locale}/{collection}/
  *
- * Lists all documents in a collection (docs, academy, insights, endpoint-management, etc.)
+ * Lists all documents in a collection (docs, academy, insights, device-management, etc.)
  */
 
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -26,11 +26,11 @@ function getLocalizedText(text: LocalizedText | undefined, locale: Locale, fallb
 export async function getStaticPaths() {
   // Define the allowed collections/folders
   // These match top-level folders inside content/{locale}/docs/ OR other content types
-  // The actual folders in docs are: app-distribution, endpoint-management, platform
+  // The actual folders in docs are: app-distribution, device-management, platform
   const collections = [
     // Actual folders in content/{locale}/docs/
     'app-distribution',
-    'endpoint-management',
+    'device-management',
     'platform',
     // Other content collections (may be separate or inside docs)
     'docs',
@@ -74,7 +74,7 @@ if (!isValidLocale(locale)) {
 
 // Fetch documents for this collection
 // Note: In the CMS, all docs have collection: "docs", and the "collection" name here
-// (like endpoint-management, platform, etc.) is actually a folder within the docs collection.
+// (like device-management, platform, etc.) is actually a folder within the docs collection.
 // So we fetch all docs and filter by path.
 let documents: Document[] = [];
 let settings = null;
@@ -88,7 +88,7 @@ try {
   // Path format: content/{locale}/docs/{folder}/...
   documents = docsResponse.documents.filter(doc => {
     if (!doc.path) return false;
-    // Check if path contains the folder (e.g., /endpoint-management/ or /platform/)
+    // Check if path contains the folder (e.g., /device-management/ or /platform/)
     return doc.path.includes(`/docs/${collectionName}/`) || doc.path.includes(`/${collectionName}/`);
   });
   settings = settingsResponse;
@@ -180,7 +180,7 @@ const collectionDescriptions: Record<string, string> = {
   answers: 'Frequently asked questions and detailed answers.',
   'product-updates': 'Latest features, improvements, and releases.',
   about: 'Learn more about our company and mission.',
-  'endpoint-management': 'Manage and configure your device endpoints.',
+  'device-management': 'Manage and configure your device endpoints.',
   mdm: 'Mobile Device Management documentation.',
   distribution: 'App distribution and deployment guides.',
   api: 'API reference and integration documentation.',

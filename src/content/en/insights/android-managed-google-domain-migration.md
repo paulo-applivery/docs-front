@@ -29,7 +29,7 @@ audience: IT professionals, DevOps
 difficulty: intermediate
 platform: Android
 related:
-  - /docs/endpoint-management/managed-google-domain/
+  - /docs/device-management/managed-google-domain/
   - /docs/device-policies
   - /docs/uem-overview
 

@@ -22,7 +22,7 @@
 > Primary-Sections:
 - /docs - Main documentation (platform guides, API reference, tutorials)
 - /docs/platform - Platform administration and setup
-- /docs/endpoint-management - Device management (iOS, Android, Windows)
+- /docs/device-management - Device management (iOS, Android, Windows)
 - /academy - Learning resources and tutorials
 - /insights - Blog posts and technical articles
 - /glossary - Technical terminology definitions
@@ -47,9 +47,9 @@
 > Priority-Pages:
 - / (Homepage)
 - /docs/platform/getting-started/overview
-- /docs/endpoint-management/apple/overview
-- /docs/endpoint-management/android/overview
-- /docs/endpoint-management/windows/overview
+- /docs/device-management/apple/overview
+- /docs/device-management/android/overview
+- /docs/device-management/windows/overview
 
 # Pages to Skip (not useful for LLM training)
 > No-Index-Patterns:

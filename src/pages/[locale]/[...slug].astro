@@ -211,7 +211,7 @@ const translationSlugs: Partial<Record<Locale, string>> = {};
 function getPathPattern(doc: Document): string | null {
   if (doc.path) {
     // Remove content/, locale prefix, and keep the rest
-    // e.g., "content/en/docs/endpoint-management/android/file.mdx" -> "docs/endpoint-management/android/file.mdx"
+    // e.g., "content/en/docs/device-management/android/file.mdx" -> "docs/device-management/android/file.mdx"
     return doc.path
       .replace(/^src\/content\//, '')
       .replace(/^content\//, '')

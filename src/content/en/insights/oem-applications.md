@@ -29,7 +29,7 @@ audience: developers
 difficulty: intermediate
 platform: Android
 related:
-  - /docs/endpoint-management/oemconfig/
+  - /docs/device-management/oemconfig/
   - /docs/device-policies
   - /docs/uem-overview
 

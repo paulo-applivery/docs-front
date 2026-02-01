@@ -29,8 +29,8 @@ audience: IT professionals
 difficulty: intermediate
 platform: Cross-platform
 related:
-  - /docs/endpoint-management/byod-vs-cyod/
-  - /docs/unified-endpoint-management/
+  - /docs/device-management/byod-vs-cyod/
+  - /docs/unified-device-management/
   - /docs/device-policies/
 
 schema_type: TechArticle
@@ -83,7 +83,7 @@ Standardization guarantees a quality baseline for everyone. Employees work with 
 
 ## What is the role of a UEM in managing the cyod standard?
 
-A standardized environment needs a centralized platform for its management. This is where a Unified Endpoint Management (UEM) solution like Applivery [https://www.applivery.com/unified-endpoint-management/] becomes indispensable. Applivery is the platform that allows you to implement and maintain that standardization at scale and effortlessly:
+A standardized environment needs a centralized platform for its management. This is where a Unified Endpoint Management (UEM) solution like Applivery [https://www.applivery.com/unified-device-management/] becomes indispensable. Applivery is the platform that allows you to implement and maintain that standardization at scale and effortlessly:
 
 * Consistent deployment  
 Ensures that every device in the CYOD program is configured in exactly the same way from the very first moment, automatically.

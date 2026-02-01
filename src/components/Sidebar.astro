@@ -114,7 +114,7 @@ const activeProduct = products.find(p => {
   const parts = normPath.split('/');
 
   // Path format: {locale}/{folder}/...
-  // So parts[0] = locale (en, es, etc.), parts[1] = folder (endpoint-management, platform, etc.)
+  // So parts[0] = locale (en, es, etc.), parts[1] = folder (device-management, platform, etc.)
   if (parts.length >= 2) {
     const pathFolder = parts[1]; // The folder after locale
     if (pathFolder === folder) return true;

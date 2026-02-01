@@ -29,8 +29,8 @@ audience: IT managers
 difficulty: intermediate
 platform: Windows, macOS, Android, iOS
 related:
-  - /docs/endpoint-management/unified-endpoint-management/
-  - /docs/endpoint-management/windows-11-migration-guide/
+  - /docs/device-management/unified-device-management/
+  - /docs/device-management/windows-11-migration-guide/
   - /insights/windows-10-end-support/
 
 schema_type: TechArticle

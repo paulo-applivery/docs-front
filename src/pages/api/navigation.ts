@@ -111,8 +111,8 @@ function buildFolderTree(
         // Create folder if it doesn't exist
         if (!folderMap[currentPath]) {
           // Build the full folder path for settings lookup
-          // The admin stores paths like: content/en/docs/endpoint-management/android
-          // where 'docs' is the collection, 'endpoint-management' is basePath, 'android' is currentPath
+          // The admin stores paths like: content/en/docs/device-management/android
+          // where 'docs' is the collection, 'device-management' is basePath, 'android' is currentPath
           const fullFolderPathWithCollection = `content/${locale}/${collection}/${basePath}/${currentPath}`;
           const fullFolderPath = `content/${locale}/${basePath}/${currentPath}`;
           const altFolderPath = `${locale}/${basePath}/${currentPath}`;
