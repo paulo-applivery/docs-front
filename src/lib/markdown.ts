@@ -4,6 +4,7 @@
  */
 
 import { marked } from 'marked';
+import { resolveMediaUrl } from './cms';
 
 // Configure marked for GFM
 marked.setOptions({
@@ -222,6 +223,17 @@ export function processMarkdown(content: string): string {
         <pre><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>
       </div>`;
     }
+  );
+
+  // Resolve /_r2/ media URLs to full CMS URLs before parsing
+  // Handles both markdown images ![alt](/_r2/...) and HTML <img src="/_r2/...">
+  processed = processed.replace(
+    /(!\[[^\]]*\]\()(\/\_r2\/[^)]+)(\))/g,
+    (_, prefix, url, suffix) => `${prefix}${resolveMediaUrl(url)}${suffix}`
+  );
+  processed = processed.replace(
+    /(<img\s[^>]*src=["'])(\/\_r2\/[^"']+)(["'])/g,
+    (_, prefix, url, suffix) => `${prefix}${resolveMediaUrl(url)}${suffix}`
   );
 
   // Convert remaining markdown to HTML using marked

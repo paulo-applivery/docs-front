@@ -76,6 +76,14 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@astrojs/mdx'],
     },
+    server: {
+      proxy: {
+        '/_r2': {
+          target: process.env.CMS_URL || 'http://localhost:3000',
+          changeOrigin: true,
+        },
+      },
+    },
   },
 
   // Output configuration - static for SSG

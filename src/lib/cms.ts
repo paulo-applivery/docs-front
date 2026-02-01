@@ -6,6 +6,18 @@
 const CMS_URL = import.meta.env.CMS_URL || "http://localhost:3000";
 const CMS_API_KEY = import.meta.env.CMS_API_KEY || "";
 
+/**
+ * Resolve media URLs that start with /_r2/ to full CMS URLs
+ * The /_r2/ paths are served by the CMS backend, not the static frontend
+ */
+export function resolveMediaUrl(url: string | undefined | null): string {
+  if (!url) return '';
+  if (url.startsWith('/_r2/')) {
+    return `${CMS_URL}${url}`;
+  }
+  return url;
+}
+
 interface FetchOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: Record<string, unknown>;

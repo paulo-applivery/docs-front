@@ -15,36 +15,6 @@ const { prevPage, nextPage, editUrl, lastUpdated } = Astro.props;
 ---
 
 <footer class="footer">
-  <!-- Prev/Next Navigation -->
-  <nav class="footer-nav">
-    {prevPage ? (
-      <a href={prevPage.href} class="footer-nav-link group">
-        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span class="flex flex-col items-start">
-          <span class="text-xs text-[var(--color-text-muted)]">Previous</span>
-          <span class="font-medium">{prevPage.title}</span>
-        </span>
-      </a>
-    ) : (
-      <div></div>
-    )}
-
-    {nextPage ? (
-      <a href={nextPage.href} class="footer-nav-link group text-right">
-        <span class="flex flex-col items-end">
-          <span class="text-xs text-[var(--color-text-muted)]">Next</span>
-          <span class="font-medium">{nextPage.title}</span>
-        </span>
-        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </a>
-    ) : (
-      <div></div>
-    )}
-  </nav>
 
   <!-- Meta info -->
   <div class="mt-8 pt-6 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-4 text-sm text-[var(--color-text-muted)]">

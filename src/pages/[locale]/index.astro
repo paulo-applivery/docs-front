@@ -7,7 +7,7 @@
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getDocuments, getAllSettings, type Document, type HomeSettings, type LocalizedText, type ContentSettings } from '../../lib/cms';
+import { getDocuments, getAllSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText, type ContentSettings } from '../../lib/cms';
 import {
   locales,
   localeNames,
@@ -347,7 +347,7 @@ function localizeUrl(path: string): string {
               <a href={localizeUrl(`/${docSlug}`)} class="card">
                 {doc.hero_image && (
                   <img
-                    src={doc.hero_image}
+                    src={resolveMediaUrl(doc.hero_image)}
                     alt={doc.image_alt || doc.title}
                     class="w-full h-40 object-cover rounded-lg mb-4"
                   />

@@ -5,7 +5,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { getDocuments, getAllSettings } from '../lib/cms';
+import { getDocuments, getAllSettings, resolveMediaUrl } from '../lib/cms';
 
 // Helper to escape XML special characters
 function escapeXml(text: string): string {
@@ -113,7 +113,7 @@ export const GET: APIRoute = async ({ site }) => {
       <category>${escapeXml(collection)}</category>
       ${doc.section ? `<category>${escapeXml(Array.isArray(doc.section) ? doc.section[0] : doc.section)}</category>` : ''}
       ${doc.author ? `<dc:creator>${escapeXml(doc.author)}</dc:creator>` : ''}
-      ${doc.hero_image ? `<enclosure url="${new URL(doc.hero_image, siteUrl).href}" type="image/jpeg" />` : ''}
+      ${doc.hero_image ? `<enclosure url="${new URL(resolveMediaUrl(doc.hero_image), siteUrl).href}" type="image/jpeg" />` : ''}
     </item>`;
     }).join('')}
   </channel>

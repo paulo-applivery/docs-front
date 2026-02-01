@@ -8,7 +8,7 @@
 
 import DocLayout from '../../layouts/DocLayout.astro';
 import ArchiveGrid from '../../components/ArchiveGrid.astro';
-import { getDocuments, getDocument, type Document } from '../../lib/cms';
+import { getDocuments, getDocument, resolveMediaUrl, type Document } from '../../lib/cms';
 import { processMarkdown } from '../../lib/markdown';
 import {
   locales,
@@ -423,7 +423,7 @@ if (processedContent.includes('data-child-grid="true"')) {
   description={fullDocument.description}
   ogTitle={fullDocument.og_title || fullDocument.seo_title}
   ogDescription={fullDocument.og_description || fullDocument.description}
-  ogImage={fullDocument.og_image || fullDocument.hero_image}
+  ogImage={resolveMediaUrl(fullDocument.og_image || fullDocument.hero_image)}
   canonical={fullDocument.canonical}
   noindex={fullDocument.noindex}
   collection={fullDocument.collection}
@@ -436,7 +436,7 @@ if (processedContent.includes('data-child-grid="true"')) {
   authorUrl={fullDocument.author_url}
   datePublished={fullDocument.pub_date || fullDocument.date}
   dateModified={fullDocument.updated_date}
-  heroImage={fullDocument.hero_image}
+  heroImage={resolveMediaUrl(fullDocument.hero_image)}
   imageAlt={fullDocument.image_alt}
   headings={headings}
   currentPath={Astro.url.pathname}
@@ -463,7 +463,7 @@ if (processedContent.includes('data-child-grid="true"')) {
         difficulty: doc.difficulty,
         audience: doc.audience,
         platform: doc.platform,
-        hero_image: doc.hero_image,
+        hero_image: resolveMediaUrl(doc.hero_image),
         image_alt: doc.image_alt,
         reading_time: doc.reading_time,
         featured: doc.featured,
