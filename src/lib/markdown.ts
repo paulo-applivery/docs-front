@@ -208,6 +208,42 @@ export function processMarkdown(content: string): string {
     }
   );
 
+  // Process BrowserMockup - wraps content in a Chrome-like browser frame
+  // Usage: <BrowserMockup url="https://example.com" theme="light">content</BrowserMockup>
+  processed = processed.replace(
+    /<BrowserMockup(?:\s+url="([^"]*)")?(?:\s+theme="([^"]*)")?>([\s\S]*?)<\/BrowserMockup>/g,
+    (_, url, theme, innerContent) => {
+      const displayUrl = url || 'https://example.com';
+      const domain = displayUrl.replace(/^https?:\/\//, '').split('/')[0];
+      const themeClass = theme === 'dark' ? 'browser-mockup-dark' : theme === 'light' ? 'browser-mockup-light' : 'browser-mockup-auto';
+
+      return `<div class="browser-mockup ${themeClass}">
+        <div class="browser-titlebar">
+          <div class="browser-traffic-lights">
+            <span class="dot dot-close"></span>
+            <span class="dot dot-minimize"></span>
+            <span class="dot dot-maximize"></span>
+          </div>
+          <div class="browser-tab">
+            <span class="browser-tab-title">${domain}</span>
+          </div>
+          <div class="browser-tab-spacer"></div>
+        </div>
+        <div class="browser-toolbar">
+          <div class="browser-nav-buttons">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" /></svg>
+            <svg class="nav-icon disabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" /></svg>
+          </div>
+          <div class="browser-address-bar">
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+            <span class="browser-url">${displayUrl}</span>
+          </div>
+        </div>
+        <div class="browser-content">${innerContent.trim()}</div>
+      </div>`;
+    }
+  );
+
   // Process code blocks with filename (```language title="filename")
   processed = processed.replace(
     /```(\w+)\s+title="([^"]+)"\n([\s\S]*?)```/g,
