@@ -278,6 +278,12 @@ export interface ColorSettings {
   textSecondary?: string;
   textTertiary?: string;
   textMuted?: string;
+  // Light mode - Code blocks
+  codeBlockBg?: string;
+  codeBlockText?: string;
+  // Light mode - Inline code
+  inlineCodeBg?: string;
+  inlineCodeText?: string;
 
   // Dark mode - Core
   darkPrimary?: string;
@@ -314,6 +320,12 @@ export interface ColorSettings {
   darkTextSecondary?: string;
   darkTextTertiary?: string;
   darkTextMuted?: string;
+  // Dark mode - Code blocks
+  darkCodeBlockBg?: string;
+  darkCodeBlockText?: string;
+  // Dark mode - Inline code
+  darkInlineCodeBg?: string;
+  darkInlineCodeText?: string;
 }
 
 export interface TypographySettings {

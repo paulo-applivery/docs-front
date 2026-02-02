@@ -208,6 +208,20 @@ const darkTextSecondary = colors?.darkTextSecondary || '#cbd5e1';
 const darkTextTertiary = colors?.darkTextTertiary || '#94a3b8';
 const darkTextMuted = colors?.darkTextMuted || '#64748b';
 
+// Light mode - Code blocks
+const codeBlockBg = colors?.codeBlockBg || '#1e293b';
+const codeBlockText = colors?.codeBlockText || '#e2e8f0';
+// Light mode - Inline code
+const inlineCodeBg = colors?.inlineCodeBg || '#f1f5f9';
+const inlineCodeText = colors?.inlineCodeText || '#0f172a';
+
+// Dark mode - Code blocks
+const darkCodeBlockBg = colors?.darkCodeBlockBg || '#0f172a';
+const darkCodeBlockText = colors?.darkCodeBlockText || '#e2e8f0';
+// Dark mode - Inline code
+const darkInlineCodeBg = colors?.darkInlineCodeBg || '#1e293b';
+const darkInlineCodeText = colors?.darkInlineCodeText || '#e2e8f0';
+
 const brandBackgroundColor = '#000717';
 
 // Get typography
@@ -355,6 +369,14 @@ const cssVars = `
     --color-text-tertiary: ${hexToCss(textTertiary)};
     --color-text-muted: ${hexToCss(textMuted)};
 
+    /* Light mode - Code blocks */
+    --color-code-block-bg: ${hexToCss(codeBlockBg)};
+    --color-code-block-text: ${hexToCss(codeBlockText)};
+
+    /* Light mode - Inline code */
+    --color-inline-code-bg: ${hexToCss(inlineCodeBg)};
+    --color-inline-code-text: ${hexToCss(inlineCodeText)};
+
     /* Brand background */
     --color-background-brand: ${brandBackgroundColor};
 
@@ -416,6 +438,14 @@ const cssVars = `
     --color-text-secondary: ${hexToCss(darkTextSecondary)};
     --color-text-tertiary: ${hexToCss(darkTextTertiary)};
     --color-text-muted: ${hexToCss(darkTextMuted)};
+
+    /* Dark mode - Code blocks */
+    --color-code-block-bg: ${hexToCss(darkCodeBlockBg)};
+    --color-code-block-text: ${hexToCss(darkCodeBlockText)};
+
+    /* Dark mode - Inline code */
+    --color-inline-code-bg: ${hexToCss(darkInlineCodeBg)};
+    --color-inline-code-text: ${hexToCss(darkInlineCodeText)};
   }
 `;
 ---
