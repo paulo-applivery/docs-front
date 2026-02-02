@@ -239,7 +239,7 @@ export function processMarkdown(content: string): string {
             <span class="browser-url">${displayUrl}</span>
           </div>
         </div>
-        <div class="browser-content">${innerContent.trim()}</div>
+        <div class="browser-content">${marked.parse(innerContent.trim()) as string}</div>
       </div>`;
     }
   );
