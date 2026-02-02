@@ -27,13 +27,15 @@ MDM Remote Support, or Mobile Device Management Remote Support (including Remote
 
 ### How can i enable remote support at the policy level in applivery device management?
 
-Applivery Device Management Android Remote Support is enabled at the Policy level. Go to your Android policies from Device Management > Policies. You can use the top filter to just show the Android policies. Click one of them and go to the Remote support section (1) from the left side menu.  
+Applivery Device Management Android Remote Support is enabled at the Policy level. Go to your Android policies from Device Management > Policies. You can use the top filter to just show the Android policies. Click one of them and go to the Remote support section (1) from the left side menu.
 
+<BrowserMockup url="https://applivery.com">
+![](/_r2/media/d6bf42af-98c4-4249-ae37-173924127ce8/041d2077-dca0-4190-afd8-6bdaecaba7a4.png)
+</BrowserMockup>
 <BrowserMockup url="https://dashboard.applivery.io/" theme="light">
 ![Remote support policy settings with Android remote support](https://www.applivery.com/wp-content/uploads/2024/11/Screenshot-2024-11-22-at-095121-1024x651.png)
 </BrowserMockup>
 
-  
 To enable the Remote support app, click the Enable button located at the top right (2). Last, decide whether you want the app to be installed in Required for Setup mode. This way is the most common for new devices, and the app will be installed during the enrollment process to ensure it’s installed before the system starts up. If you don’t select this option, the application will be installed in Force Installed mode, which is the most common scenario, and the agent app will be automatically installed on the devices and cannot be removed. Don’t forget to click the Save changes button before leaving the page to deploy all your changes.
 
 **Applivery TL;DR:**
@@ -54,7 +56,7 @@ There are two ways to request remote assistance: by user or by admin. If you’r
 -   Unattended: Start the session without user interaction.
     
 
-Note For unattended mode, please ensure that the Remote Support app has been opened at least once, all necessary permissions have been granted, and the screen has been properly calibrated.  
+Note For unattended mode, please ensure that the Remote Support app has been opened at least once, all necessary permissions have been granted, and the screen has been properly calibrated.
 
 ![Starting a remote support session on Android devices](https://www.applivery.com/wp-content/uploads/2024/11/Screenshot_2024-11-22_at_11_02_12-1024x651.png)
 
