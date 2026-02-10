@@ -13,7 +13,6 @@ import {
   defaultLocale as i18nDefaultLocale,
   type Locale
 } from '../lib/i18n';
-import LanguageSelector from './LanguageSelector.astro';
 import Icon from './Icon';
 import { iconMap, type IconName } from '../lib/icons';
 
@@ -851,18 +850,51 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     )}
   </nav>
 
-  <!-- Footer with language selector and theme toggle -->
+  <!-- Footer with language selector and theme toggle (fixed at bottom) -->
   <div class="sidebar-footer">
-    <!-- Smart Language Selector -->
-    <LanguageSelector
-      currentLocale={currentLocale}
-      currentPath={currentPath}
-      availableTranslations={effectiveTranslations}
-      translationSlugs={translationSlugs}
-      size="sm"
-      showNames={true}
-      dropdownPosition="top"
-    />
+    <!-- Language Selector (same style as home header) -->
+    <div class="sidebar-lang-selector" data-language-selector>
+      <button
+        class="sidebar-lang-btn"
+        data-language-toggle
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-label="Select language"
+      >
+        <svg class="sidebar-lang-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="sidebar-lang-code">{currentLocale.toUpperCase()}</span>
+        <svg class="sidebar-lang-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 15 12 9 18 15"/>
+        </svg>
+      </button>
+      <div
+        class="sidebar-lang-dropdown"
+        data-language-dropdown
+        data-position="top"
+        role="listbox"
+        aria-label="Available languages"
+      >
+        {effectiveTranslations.map(locale => (
+          <a
+            href={`/${locale}/${currentPath.split('/').filter(Boolean).slice(1).join('/')}`}
+            class:list={['sidebar-lang-option', { active: locale === currentLocale }]}
+            role="option"
+            aria-selected={locale === currentLocale}
+            data-locale={locale}
+          >
+            <span class="sidebar-lang-option-code">{locale.toUpperCase()}</span>
+            <span class="sidebar-lang-option-name">{localeNames[locale]}</span>
+            {locale === currentLocale && (
+              <svg class="sidebar-lang-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+          </a>
+        ))}
+      </div>
+    </div>
 
     <!-- Theme toggle -->
     <div class="theme-controls">
@@ -1064,7 +1096,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
       }
     }
     // Try to get from language selector
-    const langBtn = document.querySelector('.language-code');
+    const langBtn = document.querySelector('.sidebar-lang-code');
     if (langBtn) {
       const code = langBtn.textContent?.trim().toUpperCase();
       if (code && knownLocales.includes(code.toLowerCase())) {
@@ -1446,18 +1478,18 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     const langToggle = langSelector?.querySelector('[data-language-toggle]');
     const langDropdown = langSelector?.querySelector('[data-language-dropdown]');
 
-    if (langToggle && langDropdown) {
+    if (langToggle && langDropdown && langSelector) {
       langToggle.addEventListener('click', () => {
         const isOpen = langToggle.getAttribute('aria-expanded') === 'true';
         langToggle.setAttribute('aria-expanded', (!isOpen).toString());
-        langDropdown.classList.toggle('open', !isOpen);
+        langSelector.classList.toggle('open', !isOpen);
       });
 
       // Close on click outside
       document.addEventListener('click', (e) => {
-        if (!langSelector?.contains(e.target)) {
+        if (e.target && !langSelector.contains(e.target)) {
           langToggle.setAttribute('aria-expanded', 'false');
-          langDropdown.classList.remove('open');
+          langSelector.classList.remove('open');
         }
       });
     }
@@ -2049,7 +2081,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     background-color: var(--color-menu-item-active-bg, var(--color-accent-10));
   }
 
-  /* Footer */
+  /* Footer — fixed at bottom */
   .sidebar-footer {
     padding: 0.75rem 1rem;
     display: flex;
@@ -2057,18 +2089,19 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     justify-content: space-between;
     flex-shrink: 0;
     border-top: 1px solid var(--color-border);
+    margin-top: auto;
   }
 
-  /* Language Selector */
-  .language-selector {
+  /* Language Selector — matches home header style */
+  .sidebar-lang-selector {
     position: relative;
   }
 
-  .language-btn {
+  .sidebar-lang-btn {
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    padding: 0.375rem 0.625rem;
+    padding: 0.375rem 0.5rem;
     font-size: 0.8125rem;
     color: var(--color-text-secondary);
     background: transparent;
@@ -2078,41 +2111,41 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     transition: all 0.15s ease;
   }
 
-  .language-btn:hover {
-    color: var(--color-menu-item-hover-text);
-    background-color: var(--color-menu-item-hover-bg);
+  .sidebar-lang-btn:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-background-secondary);
   }
 
-  .language-icon {
-    width: 1rem;
-    height: 1rem;
+  .sidebar-lang-icon {
+    width: 0.875rem;
+    height: 0.875rem;
     opacity: 0.7;
   }
 
-  .language-code {
-    font-weight: 500;
+  .sidebar-lang-code {
+    font-weight: 600;
     font-size: 0.75rem;
   }
 
-  .language-chevron {
-    width: 0.75rem;
-    height: 0.75rem;
+  .sidebar-lang-chevron {
+    width: 0.625rem;
+    height: 0.625rem;
     opacity: 0.5;
     transition: transform 0.2s ease;
   }
 
-  .language-btn[aria-expanded="true"] .language-chevron {
+  .sidebar-lang-selector.open .sidebar-lang-chevron {
     transform: rotate(180deg);
   }
 
-  .language-dropdown {
+  .sidebar-lang-dropdown {
     position: absolute;
     bottom: 100%;
     left: 0;
     margin-bottom: 0.5rem;
-    min-width: 100px;
-    padding: 0.375rem;
-    background: var(--color-surface);
+    min-width: 140px;
+    padding: 0.25rem;
+    background: var(--color-bg-primary, #ffffff);
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -2123,40 +2156,59 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     z-index: 100;
   }
 
-  :global(.dark) .language-dropdown {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  :global(.dark) .sidebar-lang-dropdown {
+    background: var(--color-bg-primary, #0b1220);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 
-  .language-dropdown.open {
+  .sidebar-lang-selector.open .sidebar-lang-dropdown {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
   }
 
-  .language-option {
-    display: block;
-    padding: 0.5rem 0.75rem;
+  .sidebar-lang-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4375rem 0.625rem;
     font-size: 0.75rem;
-    font-weight: 500;
     color: var(--color-text-secondary);
-    border-radius: 0.25rem;
+    border-radius: 0.375rem;
     transition: all 0.15s ease;
-    text-align: center;
+    text-decoration: none;
   }
 
-  .language-option:hover {
-    color: var(--color-menu-item-hover-text);
-    background-color: var(--color-menu-item-hover-bg);
+  .sidebar-lang-option:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-background-secondary);
   }
 
-  .language-option.active {
-    color: var(--color-menu-item-active-text, var(--color-primary));
-    background-color: var(--color-menu-item-active-bg, var(--color-primary-5));
+  .sidebar-lang-option.active {
+    color: var(--color-primary);
+    background-color: var(--color-primary-5, rgba(var(--color-primary-rgb, 0,0,0), 0.05));
+    font-weight: 500;
   }
 
-  :global(.dark) .language-option.active {
-    color: var(--color-menu-item-active-text, var(--color-accent-light));
-    background-color: var(--color-menu-item-active-bg, var(--color-accent-10));
+  .sidebar-lang-option-code {
+    font-weight: 600;
+    width: 1.5rem;
+  }
+
+  .sidebar-lang-option-name {
+    flex: 1;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-lang-option.active .sidebar-lang-option-name {
+    color: var(--color-primary);
+    opacity: 0.7;
+  }
+
+  .sidebar-lang-check {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: var(--color-primary);
   }
 
   /* Theme Controls */
