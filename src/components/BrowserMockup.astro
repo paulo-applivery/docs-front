@@ -13,6 +13,7 @@
  *       auto = follows system/site dark mode
  *   - padding: Whether to add padding inside the content area (optional, default: false)
  */
+import Icon from './Icon';
 
 interface Props {
   url?: string;
@@ -42,22 +43,12 @@ const themeClass = theme === 'auto' ? 'browser-mockup-auto' : theme === 'dark' ?
   <!-- Address bar -->
   <div class="browser-toolbar">
     <div class="browser-nav-buttons">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-      <svg class="nav-icon disabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 6l6 6-6 6" />
-      </svg>
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0" />
-        <path d="M12 4v1M12 19v1" />
-      </svg>
+      <Icon name="arrowLeft" className="nav-icon" aria-hidden={true} client:only="react" />
+      <Icon name="arrowRight" className="nav-icon disabled" aria-hidden={true} client:only="react" />
+      <Icon name="refresh" className="nav-icon" aria-hidden={true} client:only="react" />
     </div>
     <div class="browser-address-bar">
-      <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0110 0v4" />
-      </svg>
+      <Icon name="lock" className="lock-icon" aria-hidden={true} client:only="react" />
       <span class="browser-url">{url}</span>
     </div>
   </div>

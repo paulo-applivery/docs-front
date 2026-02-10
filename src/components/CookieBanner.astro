@@ -15,12 +15,17 @@ export interface Props {
   siteName?: string;
 }
 
+import Icon from './Icon';
+
 const {
   mode = 'simple',
   position = 'bottom-right',
   privacyPolicyUrl = '/privacy',
   siteName = 'this site'
 } = Astro.props;
+
+const isCard = position !== 'footer';
+const isDetailed = mode === 'detailed';
 
 if (mode === 'none') {
   return null;
@@ -37,7 +42,67 @@ if (mode === 'none') {
   data-privacy-url={privacyPolicyUrl}
   data-site-name={siteName}
   hidden
-></div>
+>
+  {isDetailed ? (
+    <>
+      <div class="cb-main">
+        <p class="cb-text">
+          We use cookies to improve your experience.
+          {!isCard && (
+            <>
+              {' '}
+              <a href={privacyPolicyUrl} class="cb-link">Learn more</a>
+            </>
+          )}
+        </p>
+        <div class="cb-btns">
+          <button class="cb-btn cb-ghost" data-action="prefs">Customize</button>
+          <button class="cb-btn cb-primary" data-action="accept">Accept All</button>
+        </div>
+        {isCard && <a href={privacyPolicyUrl} class="cb-policy">Privacy Policy</a>}
+      </div>
+      <div class="cb-prefs" hidden>
+        <p class="cb-title">Cookie Preferences</p>
+        <label class="cb-opt">
+          <input type="checkbox" checked disabled />
+          <Icon name="check" className="cb-opt-icon" aria-hidden={true} client:only="react" />
+          <span>Essential</span>
+        </label>
+        <label class="cb-opt">
+          <input type="checkbox" id="cb-analytics" />
+          <Icon name="check" className="cb-opt-icon" aria-hidden={true} client:only="react" />
+          <span>Analytics</span>
+        </label>
+        <label class="cb-opt">
+          <input type="checkbox" id="cb-marketing" />
+          <Icon name="check" className="cb-opt-icon" aria-hidden={true} client:only="react" />
+          <span>Marketing</span>
+        </label>
+        <div class="cb-btns">
+          <button class="cb-btn cb-ghost" data-action="decline">Reject All</button>
+          <button class="cb-btn cb-primary" data-action="save">Save</button>
+        </div>
+      </div>
+    </>
+  ) : (
+    <div class="cb-main">
+      <p class="cb-text">
+        We use cookies to improve your experience.
+        {!isCard && (
+          <>
+            {' '}
+            <a href={privacyPolicyUrl} class="cb-link">Learn more</a>
+          </>
+        )}
+      </p>
+      <div class="cb-btns">
+        <button class="cb-btn cb-ghost" data-action="decline">Decline</button>
+        <button class="cb-btn cb-primary" data-action="accept">Accept</button>
+      </div>
+      {isCard && <a href={privacyPolicyUrl} class="cb-policy">Privacy Policy</a>}
+    </div>
+  )}
+</div>
 
 <script is:inline>
 (function() {
@@ -49,43 +114,9 @@ if (mode === 'none') {
   const banner = document.getElementById('cookie-banner');
   if (!banner) return;
 
-  const mode = banner.dataset.mode;
   const position = banner.dataset.position;
-  const privacyUrl = banner.dataset.privacyUrl;
-  const siteName = banner.dataset.siteName;
-  const isDetailed = mode === 'detailed';
-  const isCard = position !== 'footer';
 
   banner.className = 'cb cb-' + position;
-  banner.innerHTML = isDetailed ? `
-    <div class="cb-main">
-      <p class="cb-text">We use cookies to improve your experience.${isCard ? '' : ` <a href="${privacyUrl}" class="cb-link">Learn more</a>`}</p>
-      <div class="cb-btns">
-        <button class="cb-btn cb-ghost" data-action="prefs">Customize</button>
-        <button class="cb-btn cb-primary" data-action="accept">Accept All</button>
-      </div>
-      ${isCard ? `<a href="${privacyUrl}" class="cb-policy">Privacy Policy</a>` : ''}
-    </div>
-    <div class="cb-prefs" hidden>
-      <p class="cb-title">Cookie Preferences</p>
-      <label class="cb-opt"><input type="checkbox" checked disabled /><span>Essential</span></label>
-      <label class="cb-opt"><input type="checkbox" id="cb-analytics" /><span>Analytics</span></label>
-      <label class="cb-opt"><input type="checkbox" id="cb-marketing" /><span>Marketing</span></label>
-      <div class="cb-btns">
-        <button class="cb-btn cb-ghost" data-action="decline">Reject All</button>
-        <button class="cb-btn cb-primary" data-action="save">Save</button>
-      </div>
-    </div>
-  ` : `
-    <div class="cb-main">
-      <p class="cb-text">We use cookies to improve your experience.${isCard ? '' : ` <a href="${privacyUrl}" class="cb-link">Learn more</a>`}</p>
-      <div class="cb-btns">
-        <button class="cb-btn cb-ghost" data-action="decline">Decline</button>
-        <button class="cb-btn cb-primary" data-action="accept">Accept</button>
-      </div>
-      ${isCard ? `<a href="${privacyUrl}" class="cb-policy">Privacy Policy</a>` : ''}
-    </div>
-  `;
 
   banner.hidden = false;
 
@@ -263,6 +294,11 @@ if (mode === 'none') {
     cursor: pointer;
     font-size: 13px;
     color: var(--color-text-secondary, #6b7280);
+  }
+  .cb-opt-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
   }
   html.dark .cb-opt {
     color: var(--color-text-secondary, #9ca3af);

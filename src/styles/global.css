@@ -535,6 +535,10 @@
     color: var(--color-text-tertiary);
   }
 
+  .article-content img {
+    border-radius: 16px;
+  }
+
   /* Table of Contents */
   .toc {
     position: fixed;
@@ -1591,7 +1595,8 @@
   .browser-mockup .lock-icon { width: 0.75rem; height: 0.75rem; flex-shrink: 0; }
   .browser-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .browser-content { width: 100%; overflow: hidden; }
-  .browser-content img { display: block; width: 100%; height: auto; }
+  .browser-content img { display: block; width: 100%; height: auto; margin: 0; border-radius: 0; }
+  .browser-content p { margin: 0; }
 
   @media (max-width: 640px) {
     .browser-titlebar { padding: 0.375rem 0.5rem; }

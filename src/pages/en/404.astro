@@ -5,6 +5,7 @@
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon';
 import { getAllSettings, type HomeSettings, type LocalizedText } from '../../lib/cms';
 import {
   locales,
@@ -110,9 +111,7 @@ function localizeUrl(path: string): string {
           ) : (
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <Icon name="fileText" className="w-5 h-5 text-white" aria-hidden={true} client:only="react" />
               </div>
               <span class="font-semibold text-[var(--color-text-primary)]">{siteName}</span>
             </div>
@@ -150,15 +149,9 @@ function localizeUrl(path: string): string {
                 class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded-md hover:bg-[var(--color-background-secondary)]"
                 data-language-toggle
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="2" y1="12" x2="22" y2="12"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
+                <Icon name="language" className="w-4 h-4" aria-hidden={true} client:only="react" />
                 <span class="font-medium">{locale.toUpperCase()}</span>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
+                <Icon name="chevronDown" className="w-3 h-3" aria-hidden={true} client:only="react" />
               </button>
               <div class="language-dropdown absolute right-0 top-full mt-1 min-w-[140px] py-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg opacity-0 invisible transition-all" data-language-dropdown>
                 {availableLocales.map(l => (
@@ -179,12 +172,8 @@ function localizeUrl(path: string): string {
             id="theme-toggle"
             class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background-secondary)]"
           >
-            <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
+            <Icon name="sun" className="w-5 h-5 hidden dark:block" aria-hidden={true} client:only="react" />
+            <Icon name="moon" className="w-5 h-5 block dark:hidden" aria-hidden={true} client:only="react" />
           </button>
 
           <a href={localizeUrl('/')} class="btn btn-primary">
@@ -218,15 +207,11 @@ function localizeUrl(path: string): string {
         <!-- Actions -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a href={localizeUrl('/')} class="btn btn-primary w-full sm:w-auto">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
+            <Icon name="home" className="w-4 h-4" aria-hidden={true} client:only="react" />
             Go to homepage
           </a>
           <a href={localizeUrl('/docs')} class="btn btn-secondary w-full sm:w-auto">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <Icon name="fileText" className="w-4 h-4" aria-hidden={true} client:only="react" />
             Browse docs
           </a>
         </div>

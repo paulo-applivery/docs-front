@@ -14,6 +14,8 @@ import {
   type Locale
 } from '../lib/i18n';
 import LanguageSelector from './LanguageSelector.astro';
+import Icon from './Icon';
+import { iconMap, type IconName } from '../lib/icons';
 
 interface Props {
   documents: Document[];
@@ -388,126 +390,30 @@ const navigation = isManualMode
 // Serialize products for client-side use
 const productsJson = JSON.stringify(products);
 
-// Icon mapping for common icons (Lucide icon paths) - must be kept in sync with client-side iconPaths
-const iconMap: Record<string, string> = {
-  // Folder icons
-  folder: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
-  'folder-open': 'M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z',
-  document: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-  'file-text': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-  // Technology & Platforms
-  smartphone: 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
-  'tablet-smartphone': 'M18 8h-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2v-2h2a2 2 0 002-2v-4a2 2 0 00-2-2z',
-  tablet: 'M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
-  monitor: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-  laptop: 'M12 18h.01M21 16V5a2 2 0 00-2-2H5a2 2 0 00-2 2v11m18 0H3m18 0l1.5 3H1.5L3 16',
-  tv: 'M4 7h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2zm4-4h8',
-  watch: 'M12 8v4l2 2m-6 6h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z',
-  // Brand/Platform icons
-  apple: 'M12 2C9.243 2 7 4.243 7 7v1H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V7c0-2.757-2.243-5-5-5zm0 2c1.654 0 3 1.346 3 3v1H9V7c0-1.654 1.346-3 3-3z',
-  android: 'M5 16v-4a7 7 0 0114 0v4M4 11h1m14 0h1M8 16v3m8-3v3M8 3l1 2m6-2l-1 2',
-  windows: 'M3 5l7-1v7H3V5zm0 14l7 1v-7H3v6zm8 1l10 1.5V12h-10v8zm0-18v8h10V3.5L11 2z',
-  chrome: 'M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-6a4 4 0 100-8 4 4 0 000 8z',
-  github: 'M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z',
-  // Infrastructure
-  server: 'M5 12H3a2 2 0 00-2 2v4a2 2 0 002 2h2m16-8h2a2 2 0 012 2v4a2 2 0 01-2 2h-2M5 8h14a2 2 0 002-2V4a2 2 0 00-2-2H5a2 2 0 00-2 2v2a2 2 0 002 2z M5 20h14a2 2 0 002-2v-2a2 2 0 00-2-2H5a2 2 0 00-2 2v2a2 2 0 002 2z',
-  cloud: 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z',
-  database: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4',
-  cpu: 'M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z',
-  'hard-drive': 'M22 12H2m20 0a2 2 0 01-2 2H4a2 2 0 01-2-2m20 0a2 2 0 00-2-2H4a2 2 0 00-2 2m18 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16-6V6a2 2 0 00-2-2H6a2 2 0 00-2 2v4',
-  wifi: 'M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01',
-  // Security
-  shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  'shield-check': 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-  lock: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
-  key: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z',
-  fingerprint: 'M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4',
-  scan: 'M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2',
-  eye: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
-  // Development & API
-  code: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
-  terminal: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-  'git-branch': 'M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM18 9a9 9 0 01-9 9',
-  'git-commit': 'M12 16a4 4 0 100-8 4 4 0 000 8zm-9-4h5m4 0h9',
-  'git-merge': 'M18 21a3 3 0 100-6 3 3 0 000 6zM6 9a3 3 0 100-6 3 3 0 000 6zM6 21V9m0 0a9 9 0 009 9',
-  webhook: 'M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71',
-  api: 'M4 6h16M4 12h16M4 18h8m4-9v6m3-3h-6',
-  braces: 'M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5a2 2 0 002 2h1m8 0h1a2 2 0 002-2v-5a2 2 0 012-2 2 2 0 01-2-2V5a2 2 0 00-2-2h-1',
-  bug: 'M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1m-9 6a6 6 0 0012 0v-3M3 13h18M12 20v-3M9 20h6M5 8h14M5 16h14',
-  // Integrations & Plugins
-  plug: 'M12 2v6m0 0V2m0 6c-2 0-3 1-3 3m3-3c2 0 3 1 3 3m-6 0H5m1 0c0 2 1 3 3 3v6c0 1 1 2 3 2s3-1 3-2v-6c2 0 3-1 3-3m0 0h1',
-  puzzle: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z',
-  blocks: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
-  package: 'M16.5 9.4l-9-5.19M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12',
-  box: 'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z',
-  layers: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-  // Documentation
-  book: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-  'book-open': 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-  scroll: 'M8 21h12a2 2 0 002-2v-2H10v2a2 2 0 11-4 0V5a2 2 0 10-4 0v3h4',
-  notebook: 'M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15z',
-  clipboard: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-  // Navigation & Settings
-  settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
-  cog: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
-  home: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-  compass: 'M22 12h-4l-3 9L9 3l-3 9H2',
-  map: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7',
-  'map-pin': 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0zm-9 3a3 3 0 100-6 3 3 0 000 6z',
-  bookmark: 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z',
-  wrench: 'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z',
-  sliders: 'M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6',
-  'layout-dashboard': 'M3 3h7v9H3V3zm11 0h7v5h-7V3zM3 15h7v6H3v-6zm11-3h7v9h-7v-9z',
-  // Actions
-  zap: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
-  rocket: 'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91-.79-.78-2.07-.79-2.91-.09zm9.24-10.24L12 4.5C8.5 1 3.68 1.94 2.5 2.5c-.56 1.18-1.5 6 2 9.5l1.75-1.75m10.01-4.01C17.5 5 19 4.5 21 4c-.5 2-1 3.5-2.25 4.75M15 9l-3 3m3.89-8.89c.93-.93 1.96-1.54 3.11-1.61 1.15-.07 3 .77 3 .77s.84 1.85.77 3c-.07 1.15-.68 2.18-1.61 3.11l-8.54 8.54-5.66-5.66 8.93-8.15z',
-  play: 'M5 3l14 9-14 9V3z',
-  download: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4',
-  upload: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12',
-  'refresh-cw': 'M1 4v6h6M23 20v-6h-6m-.02-5.02A9 9 0 006.67 6.34L1 10m22 4l-5.67 3.66A9 9 0 016.05 15.02',
-  trash: 'M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2',
-  pencil: 'M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z',
-  plus: 'M12 5v14m-7-7h14',
-  // Users & Org
-  user: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2m8-10a4 4 0 100-8 4 4 0 000 8z',
-  users: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-  building: 'M3 21h18M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4M3 7l9-4 9 4M4 10h16v11H4V10z',
-  briefcase: 'M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zm-6 0V5a2 2 0 00-2-2h-2a2 2 0 00-2 2v2',
-  // Communication
-  bell: 'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0',
-  mail: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-  'message-square': 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z',
-  phone: 'M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z',
-  'help-circle': 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-  // Analytics
-  'bar-chart': 'M18 20V10m-6 10V4M6 20v-6',
-  'line-chart': 'M3 3v18h18M7 14l4-4 4 4 5-5',
-  'trending-up': 'M22 7l-8.5 8.5-5-5L2 17',
-  activity: 'M22 12h-4l-3 9L9 3l-3 9H2',
-  // Misc & Status
-  star: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
-  heart: 'M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z',
-  flag: 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1v12zm0 7v-7',
-  tag: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
-  globe: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9',
-  link: 'M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71',
-  'external-link': 'M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6m4-3h6v6m-11 5L21 3',
-  check: 'M5 13l4 4L19 7',
-  'check-circle': 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-  x: 'M18 6L6 18M6 6l12 12',
-  'alert-triangle': 'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01',
-  info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-  sparkles: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z',
-  search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-  calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-  clock: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-  unlock: 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z',
-  'alert-circle': 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+const iconNameMap: Record<string, IconName> = {
+  folder: 'folder',
+  'folder-open': 'folderOpen',
+  document: 'document',
+  'file-text': 'fileText',
+  home: 'home',
+  book: 'book',
+  link: 'link',
+  search: 'search',
+  info: 'info',
+  check: 'check',
+  'alert-circle': 'info',
+  'alert-triangle': 'info',
+  settings: 'settings',
+  cog: 'settings',
+  'columns-3-cog': 'settings',
+  smartphone: 'smartphone',
+  'monitor-smartphone': 'smartphone',
+  'panel-top-open': 'windowFrame',
 };
 
-function getIconPath(iconName?: string): string {
-  if (!iconName) return iconMap.document;
-  return iconMap[iconName.toLowerCase()] || iconMap.document;
+function getIconName(iconName?: string): IconName {
+  if (!iconName) return 'document';
+  return iconNameMap[iconName.toLowerCase()] || 'document';
 }
 
 // Build languages array from supportedLocales (fallback to i18n locales)
@@ -527,7 +433,12 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
 const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
 ---
 
-<aside class="sidebar" data-cms-url={cmsUrl}>
+<aside
+  class="sidebar"
+  data-cms-url={cmsUrl}
+  data-icon-name-map={JSON.stringify(iconNameMap)}
+  data-icon-map={JSON.stringify(iconMap)}
+>
   <!-- Logo / Site Name -->
   <div class="sidebar-header">
     <a href="/" class="flex items-center gap-3">
@@ -573,9 +484,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
       ) : (
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <Icon name="document" className="w-5 h-5 text-white" aria-hidden={true} client:only="react" />
           </div>
           <span class="font-semibold text-[var(--color-text-primary)]">{siteName}</span>
         </div>
@@ -598,9 +507,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
           data-product-collection={product.collection}
         >
           {product.icon && (
-            <svg class="product-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={getIconPath(product.icon)} />
-            </svg>
+            <Icon name={getIconName(product.icon)} className="product-icon" aria-hidden={true} client:only="react" />
           )}
           <span class="product-label">{product.label}</span>
         </button>
@@ -685,22 +592,18 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
               aria-expanded={isExpanded ? 'true' : 'false'}
             >
               <span class="group-title-content">
-                {group.icon && (
-                  <svg class="group-title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={getIconPath(group.icon)} />
-                  </svg>
-                )}
+                    {group.icon && (
+                      <Icon name={getIconName(group.icon)} className="group-title-icon" aria-hidden={true} client:only="react" />
+                    )}
                 <span class="truncate">{group.title}</span>
               </span>
-              <svg
-                class="nav-chevron"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                style={isExpanded ? 'transform: rotate(180deg);' : ''}
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+              <Icon
+                name="chevronDown"
+                className="nav-chevron"
+                style={isExpanded ? { transform: 'rotate(180deg)' } : undefined}
+                aria-hidden={true}
+                client:only="react"
+              />
             </button>
             <div
               class="nav-group-content"
@@ -717,9 +620,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
                         class:list={['sidebar-nav-item', { active: item.active }]}
                       >
                         {item.icon && (
-                          <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={getIconPath(item.icon)} />
-                          </svg>
+                          <Icon name={getIconName(item.icon)} className="nav-item-icon" aria-hidden={true} client:only="react" />
                         )}
                         <span class="nav-item-label">{item.label}</span>
                       </a>
@@ -741,21 +642,17 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
                     >
                       <span class="group-title-content">
                         {subgroup.icon && (
-                          <svg class="group-title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={getIconPath(subgroup.icon)} />
-                          </svg>
+                          <Icon name={getIconName(subgroup.icon)} className="group-title-icon" aria-hidden={true} client:only="react" />
                         )}
                         <span class="truncate">{subgroup.title}</span>
                       </span>
-                      <svg
-                        class="nav-chevron-sub"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        style={subHasActive ? 'transform: rotate(180deg);' : ''}
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <Icon
+                        name="chevronDown"
+                        className="nav-chevron-sub"
+                        style={subHasActive ? { transform: 'rotate(180deg)' } : undefined}
+                        aria-hidden={true}
+                        client:only="react"
+                      />
                     </button>
                     <ul
                       class="nav-subgroup-content"
@@ -769,9 +666,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
                             class:list={['sidebar-nav-item sidebar-nav-item-nested', { active: item.active }]}
                           >
                             {item.icon && (
-                              <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={getIconPath(item.icon)} />
-                              </svg>
+                              <Icon name={getIconName(item.icon)} className="nav-item-icon" aria-hidden={true} client:only="react" />
                             )}
                             <span class="nav-item-label">{item.label}</span>
                           </a>
@@ -813,20 +708,27 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
         id="sidebar-theme-toggle"
         aria-label="Toggle dark mode"
       >
-        <svg class="theme-icon-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <svg class="theme-icon-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
+        <Icon name="sun" className="theme-icon-light" aria-hidden={true} client:only="react" />
+        <Icon name="moon" className="theme-icon-dark" aria-hidden={true} client:only="react" />
       </button>
     </div>
   </div>
 </aside>
 
-<script>
+<script lang="ts">
+  const sidebarElement = document.querySelector('.sidebar');
+  const sidebarDataset = sidebarElement?.dataset;
+  const iconNameMap = sidebarDataset?.iconNameMap
+    ? new Map(Object.entries(JSON.parse(sidebarDataset.iconNameMap)))
+    : new Map();
+  const iconifyMap = sidebarDataset?.iconMap
+    ? new Map(Object.entries(JSON.parse(sidebarDataset.iconMap)))
+    : new Map();
+  const iconSvgCache = new Map();
+  const iconSvgRequests = new Map();
+
   // Icon paths for dynamic rendering (must match server-side iconMap)
-  const iconPaths: Record<string, string> = {
+  const iconPaths = {
     // Folder icons
     folder: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
     'folder-open': 'M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z',
@@ -985,20 +887,10 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
   };
 
   // Cache for loaded folder content
-  const folderCache: Record<string, any[]> = {};
-
-  interface FolderItem {
-    type: 'folder' | 'file';
-    name: string;
-    title: string;
-    path: string;
-    href: string;
-    icon?: string;
-    children?: FolderItem[];
-  }
+  const folderCache = new Map();
 
   // Get current locale from page or default to 'en'
-  function getCurrentLocale(): string {
+  function getCurrentLocale() {
     // Try to get from URL path (e.g., /en/docs/... or /es/docs/...)
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const knownLocales = ['en', 'es', 'fr', 'de', 'pt', 'it', 'ja', 'zh', 'ko'];
@@ -1019,25 +911,27 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
   }
 
   // Fetch folder content from CMS API
-  async function fetchFolderContent(collection: string, folder: string): Promise<FolderItem[]> {
+  async function fetchFolderContent(collection, folder) {
     const locale = getCurrentLocale();
     const cacheKey = `${collection}/${folder}/${locale}`;
-    if (folderCache[cacheKey]) {
-      return folderCache[cacheKey];
+    const cached = folderCache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     try {
       // Use CMS API directly (server-rendered endpoint, works with static builds)
-      const sidebar = document.querySelector('.sidebar') as HTMLElement;
-      const cmsUrl = sidebar?.dataset.cmsUrl || '';
+      const sidebar = document.querySelector('.sidebar');
+      const cmsUrl = sidebar?.dataset?.cmsUrl || '';
       const apiUrl = cmsUrl
         ? `${cmsUrl}/api/docs/navigation?collection=${collection}&folder=${folder}&locale=${locale}`
         : `/api/navigation?collection=${collection}&folder=${folder}&locale=${locale}`;
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-      folderCache[cacheKey] = data.items || [];
-      return folderCache[cacheKey];
+      const items = data.items || [];
+      folderCache.set(cacheKey, items);
+      return items;
     } catch (error) {
       console.error('Failed to fetch folder content:', error);
       return [];
@@ -1045,23 +939,66 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
   }
 
   // Format title from path segment
-  function formatTitle(segment: string): string {
+  function formatTitle(segment) {
     return segment
       .replace(/-/g, ' ')
       .replace(/_/g, ' ')
       .replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  // Get icon path by name, with fallback
-  function getIconPath(iconName?: string, isFolder = false): string {
-    if (iconName && iconPaths[iconName]) {
-      return iconPaths[iconName];
-    }
-    return iconPaths[isFolder ? 'folder' : 'document'];
+  function resolveIconName(iconName, isFolder = false) {
+    if (!iconName) return isFolder ? 'folder' : 'document';
+    const normalized = iconName.toLowerCase();
+    return iconNameMap.get(normalized) || (isFolder ? 'folder' : 'document');
+  }
+
+  function resolveIconifyName(iconName, isFolder = false) {
+    const resolved = resolveIconName(iconName, isFolder);
+    return iconifyMap.get(resolved) || iconifyMap.get(isFolder ? 'folder' : 'document') || '';
+  }
+
+  function renderIcon(iconName, className = '', isFolder = false) {
+    const iconifyName = resolveIconifyName(iconName, isFolder);
+    if (!iconifyName) return '';
+    return `<span class="${className}" data-iconify="${iconifyName}"></span>`;
+  }
+
+  function renderIconByName(iconifyName, className = '', style = '') {
+    if (!iconifyName) return '';
+    const styleAttr = style ? ` style="${style}"` : '';
+    return `<span class="${className}" data-iconify="${iconifyName}"${styleAttr}></span>`;
+  }
+
+  async function loadIconSvg(iconifyName) {
+    const cached = iconSvgCache.get(iconifyName);
+    if (cached) return cached;
+    const inFlight = iconSvgRequests.get(iconifyName);
+    if (inFlight) return inFlight;
+    const request = fetch(`https://api.iconify.design/${iconifyName}.svg`)
+      .then(res => (res.ok ? res.text() : ''))
+      .then(svg => {
+        iconSvgCache.set(iconifyName, svg);
+        return svg;
+      })
+      .catch(() => '');
+    iconSvgRequests.set(iconifyName, request);
+    return request;
+  }
+
+  async function hydrateIcons(container) {
+    const placeholders = Array.from(container.querySelectorAll('[data-iconify]'));
+    if (placeholders.length === 0) return;
+    await Promise.all(placeholders.map(async placeholder => {
+      const iconifyName = placeholder.dataset?.iconify;
+      if (!iconifyName) return;
+      const svg = await loadIconSvg(iconifyName);
+      if (!svg) return;
+      placeholder.innerHTML = svg;
+    }));
   }
 
   // Check if any item or its descendants are active (recursive)
-  function hasActiveDescendant(items: FolderItem[], currentPath: string): boolean {
+  function hasActiveDescendant(items, currentPath) {
     for (const item of items) {
       if (currentPath === item.href || currentPath.startsWith(item.href + '/')) {
         return true;
@@ -1074,19 +1011,19 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
   }
 
   // Render folder navigation tree
-  function renderFolderTree(items: FolderItem[], currentPath: string, depth = 0): string {
+  function renderFolderTree(items, currentPath, depth = 0) {
     if (!items || items.length === 0) return '';
 
     return items.map(item => {
       const isActive = currentPath === item.href || currentPath.startsWith(item.href + '/');
       const isFolder = item.type === 'folder';
-      // Use item's icon if available, otherwise fall back to default folder/document icon
-      const iconPath = getIconPath(item.icon, isFolder);
       const paddingLeft = 0.75 + (depth * 0.75);
 
       if (isFolder && item.children) {
         // Check recursively for active items in all descendants
         const hasActiveChild = hasActiveDescendant(item.children, currentPath);
+        const chevronStyle = hasActiveChild ? 'transform: rotate(180deg)' : '';
+        const chevronIcon = iconifyMap.get('chevronDown') || '';
 
         return `
           <div class="folder-group" data-folder-group>
@@ -1097,13 +1034,9 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
               aria-expanded="${hasActiveChild ? 'true' : 'false'}"
               style="padding-left: ${paddingLeft}rem"
             >
-              <svg class="folder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}" />
-              </svg>
+              ${renderIcon(item.icon, 'folder-icon', true)}
               <span class="folder-label">${item.title || formatTitle(item.name)}</span>
-              <svg class="folder-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="${hasActiveChild ? 'transform: rotate(180deg)' : ''}">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+              ${renderIconByName(chevronIcon, 'folder-chevron', chevronStyle)}
             </button>
             <div class="folder-content" data-folder-content style="${hasActiveChild ? '' : 'display: none'}">
               ${renderFolderTree(item.children, currentPath, depth + 1)}
@@ -1117,9 +1050,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
             class="folder-item ${isActive ? 'active' : ''}"
             style="padding-left: ${paddingLeft}rem"
           >
-            <svg class="folder-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}" />
-            </svg>
+            ${renderIcon(item.icon, 'folder-item-icon', false)}
             <span class="folder-item-label">${item.title || formatTitle(item.name)}</span>
           </a>
         `;
@@ -1128,12 +1059,12 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
   }
 
   // Initialize folder toggle handlers
-  function initFolderToggles(container: HTMLElement) {
+  function initFolderToggles(container) {
     const folderGroups = container.querySelectorAll('[data-folder-group]');
     folderGroups.forEach(group => {
       const toggle = group.querySelector('[data-folder-toggle]');
-      const content = group.querySelector('[data-folder-content]') as HTMLElement;
-      const chevron = toggle?.querySelector('.folder-chevron') as HTMLElement;
+      const content = group.querySelector('[data-folder-content]');
+      const chevron = toggle?.querySelector('.folder-chevron');
 
       if (!toggle || !content) return;
 
@@ -1149,7 +1080,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
   }
 
   // Load product navigation
-  async function loadProductNav(productBtn: HTMLElement) {
+  async function loadProductNav(productBtn) {
     const container = document.getElementById('product-nav-container');
     if (!container) return;
 
@@ -1204,9 +1135,9 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
    * - Uses cache for instant re-renders of visited tabs
    * - Minimal DOM updates
    */
-  let currentLoadController: AbortController | null = null;
+  let currentLoadController = null;
 
-  async function loadTabNav(folder: string, collection: string) {
+  async function loadTabNav(folder, collection) {
     const container = document.getElementById('tab-nav-container');
     if (!container || !folder) return;
 
@@ -1217,7 +1148,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     // Check cache first for instant render
     const locale = getCurrentLocale();
     const cacheKey = `${collection}/${folder}/${locale}`;
-    const cached = folderCache[cacheKey];
+    const cached = folderCache.get(cacheKey);
 
     if (cached) {
       renderNav(container, cached);
@@ -1231,7 +1162,12 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
       const items = await fetchFolderContent(collection, folder);
       renderNav(container, items);
     } catch (e) {
-      if ((e as Error).name !== 'AbortError') {
+      const isAbort =
+        e &&
+        typeof e === 'object' &&
+        'name' in e &&
+        e.name === 'AbortError';
+      if (!isAbort) {
         container.innerHTML = '<div class="tab-nav-empty">Failed to load</div>';
       }
     } finally {
@@ -1239,7 +1175,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     }
   }
 
-  function renderNav(container: HTMLElement, items: FolderItem[]) {
+  function renderNav(container, items) {
     if (items.length === 0) {
       container.innerHTML = '<div class="tab-nav-empty">No content found</div>';
       return;
@@ -1258,12 +1194,12 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
         btn.classList.add('active');
 
         // Load product navigation
-        await loadProductNav(btn as HTMLElement);
+        await loadProductNav(btn);
       });
     });
 
     // Load default active product navigation on page load
-    const activeProduct = document.querySelector('.product-btn.active') as HTMLElement;
+    const activeProduct = document.querySelector('.product-btn.active');
     if (activeProduct) {
       loadProductNav(activeProduct);
     }
@@ -1273,7 +1209,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     if (tabContainer) {
       // Load initial tab content from localStorage or default
       const storedTab = localStorage.getItem('docs_active_tab');
-      let initialTab: { id: string; folder: string; collection: string } | null = null;
+      let initialTab = null;
 
       if (storedTab) {
         try {
@@ -1289,7 +1225,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
         if (tabsData) {
           try {
             const tabs = JSON.parse(tabsData);
-            const defaultTab = tabs.find((t: any) => t.defaultActive) || tabs[0];
+            const defaultTab = tabs.find((t) => t.defaultActive) || tabs[0];
             if (defaultTab) {
               initialTab = {
                 id: defaultTab.id,
@@ -1309,18 +1245,19 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
       }
 
       // Listen for tab changes from header
-      window.addEventListener('tabChange', ((e: CustomEvent) => {
-        const { folder, collection } = e.detail;
+      window.addEventListener('tabChange', (e) => {
+        const detail = e.detail || {};
+        const { folder, collection } = detail || {};
         if (folder) loadTabNav(folder, collection);
-      }) as EventListener);
+      });
     }
 
     // Navigation toggle (for static navigation)
     const groups = document.querySelectorAll('[data-nav-group]');
     groups.forEach(group => {
       const toggle = group.querySelector('[data-nav-toggle]');
-      const content = group.querySelector('[data-nav-content]') as HTMLElement;
-      const chevron = toggle?.querySelector('.nav-chevron, .nav-chevron-sub') as HTMLElement;
+    const content = group.querySelector('[data-nav-content]');
+    const chevron = toggle?.querySelector('.nav-chevron, .nav-chevron-sub');
 
       if (!toggle || !content) return;
 
@@ -1337,7 +1274,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
     // Language selector
     const langSelector = document.querySelector('[data-language-selector]');
     const langToggle = langSelector?.querySelector('[data-language-toggle]');
-    const langDropdown = langSelector?.querySelector('[data-language-dropdown]') as HTMLElement;
+    const langDropdown = langSelector?.querySelector('[data-language-dropdown]');
 
     if (langToggle && langDropdown) {
       langToggle.addEventListener('click', () => {
@@ -1348,7 +1285,7 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
 
       // Close on click outside
       document.addEventListener('click', (e) => {
-        if (!langSelector?.contains(e.target as Node)) {
+        if (!langSelector?.contains(e.target)) {
           langToggle.setAttribute('aria-expanded', 'false');
           langDropdown.classList.remove('open');
         }

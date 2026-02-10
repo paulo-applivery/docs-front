@@ -3,6 +3,7 @@
  * SearchButton Component - Trigger for search modal
  * Keyboard shortcut: Cmd/Ctrl + K
  */
+import Icon from './Icon';
 ---
 
 <button
@@ -10,9 +11,7 @@
   class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background-secondary)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)] transition-colors text-[0.8125rem] leading-[1.125rem]"
   aria-label="Search documentation"
 >
-  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
+  <Icon name="search" className="w-4 h-4" aria-hidden={true} client:only="react" />
   <span class="hidden sm:inline">Search</span>
   <kbd class="hidden sm:inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded bg-[var(--color-background-tertiary)] text-xs">
     <span class="text-[10px]">⌘</span>K
@@ -34,9 +33,7 @@
     <div class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden">
       <!-- Search Input -->
       <div class="flex items-center gap-3 px-4 border-b border-[var(--color-border)]">
-        <svg class="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+        <Icon name="search" className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" aria-hidden={true} client:only="react" />
         <input
           type="text"
           id="search-input"
