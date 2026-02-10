@@ -184,7 +184,12 @@ if (topMenu && topMenu.items && topMenu.items.length > 0) {
       aria-label="Toggle AI Assistant"
       aria-expanded="false"
     >
-      <Icon name="sparkles" className="ai-icon" aria-hidden={true} client:only="react" />
+      <svg class="ai-icon" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.517 8.773L13 19.772l-5.5-1.343L2 19.772l5.515-10.999h.002z" fill="currentColor"/>
+        <path d="M16.596 7s.237 2.217 1.162 3.142c.925.925 3.142 1.162 3.142 1.162s-2.217.238-3.142 1.163c-.925.925-1.162 3.141-1.162 3.141s-.238-2.216-1.163-3.141c-.925-.926-3.142-1.163-3.142-1.163s2.217-.237 3.142-1.162C16.358 9.217 16.596 7 16.596 7z" fill="currentColor"/>
+        <path d="M13.726 4s.132 1.232.646 1.745c.514.514 1.746.646 1.746.646s-1.232.132-1.746.646c-.514.514-.646 1.745-.646 1.745s-.132-1.231-.646-1.745c-.514-.514-1.745-.646-1.745-.646s1.231-.132 1.745-.646c.514-.514.646-1.745.646-1.745z" fill="currentColor"/>
+        <path d="M18.509 3s.08.739.388 1.047c.308.308 1.047.387 1.047.387s-.739.08-1.047.388c-.308.308-.388 1.047-.388 1.047s-.079-.739-.387-1.047c-.309-.309-1.048-.388-1.048-.388s.74-.079 1.048-.387c.308-.308.387-1.047.387-1.047z" fill="currentColor"/>
+      </svg>
       <span class="ai-btn-text">Ask AI</span>
     </button>
 
