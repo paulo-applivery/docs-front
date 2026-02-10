@@ -93,6 +93,25 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     let chatSettings: any = null;
     let settingsLoaded = false;
     let isLoading = false;
+    let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    let thinkingInterval: ReturnType<typeof setInterval> | null = null;
+
+    // Cycling thinking phrases
+    const thinkingPhrases = [
+      'Thinking', 'Searching docs', 'Reading content',
+      'Finding sources', 'Connecting ideas', 'Crafting answer'
+    ];
+
+    // Extract locale and collection from current URL path
+    function getPageContext(): { locale: string; collection: string } {
+      const path = window.location.pathname;
+      // Expected pattern: /{locale}/{collection}/...
+      const parts = path.split('/').filter(Boolean);
+      return {
+        locale: parts[0] || 'en',
+        collection: parts[1] || ''
+      };
+    }
 
     // --- Panel open/close ---
 
@@ -167,7 +186,10 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
         const btn = document.createElement('button');
         btn.className = 'ai-suggestion';
         btn.textContent = action.message;
-        btn.addEventListener('click', () => handleQuickAction(action));
+        btn.addEventListener('click', () => {
+          hideWelcome();
+          sendRAGMessage(action.message);
+        });
         suggestionsContainer.appendChild(btn);
       }
     }
@@ -175,33 +197,22 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     function renderFallbackQuickActions() {
       if (!suggestionsContainer) return;
       const fallbacks = [
-        { id: 'summarize', message: 'Summarize the content', prompt: 'Summarize the following documentation content in 3-5 concise bullet points:\n\n{content}' },
-        { id: 'explain', message: 'Explain the main concepts', prompt: 'Explain the main concepts covered in this documentation in simple terms:\n\n{content}' },
-        { id: 'steps', message: 'Generate steps', prompt: 'Extract and list the key steps or procedures described in this documentation as a numbered list:\n\n{content}' }
+        'What topics are covered in the docs?',
+        'Summarize the key concepts',
+        'How do I get started?'
       ];
 
       suggestionsContainer.innerHTML = '';
-      for (const action of fallbacks) {
+      for (const text of fallbacks) {
         const btn = document.createElement('button');
         btn.className = 'ai-suggestion';
-        btn.textContent = action.message;
-        btn.addEventListener('click', () => handleQuickAction(action));
+        btn.textContent = text;
+        btn.addEventListener('click', () => {
+          hideWelcome();
+          sendRAGMessage(text);
+        });
         suggestionsContainer.appendChild(btn);
       }
-    }
-
-    // --- Content extraction ---
-
-    function extractPageContent(selectorOverride?: string): string {
-      const selector = selectorOverride || chatSettings?.contentSelector || '.article-content';
-      const element = document.querySelector(selector);
-      if (!element) return '';
-      let text = element.textContent || '';
-      const maxLen = chatSettings?.maxContentLength || 30000;
-      if (text.length > maxLen) {
-        text = text.substring(0, maxLen);
-      }
-      return text.trim();
     }
 
     // --- Message handling ---
@@ -213,39 +224,22 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
       if (suggestionsEl) suggestionsEl.remove();
     }
 
-    async function handleQuickAction(action: any) {
-      addMessage(action.message, 'user');
-      hideWelcome();
-
-      const content = extractPageContent(action.selector);
-      if (!content) {
-        addMessage('Could not extract page content. Please make sure you are on a documentation page.', 'assistant');
-        return;
-      }
-
-      // Send the prompt template directly so it works even without saved settings
-      await sendToAI({ prompt: action.prompt, content });
-    }
-
     async function sendMessage() {
       const message = input?.value.trim();
       if (!message || isLoading) return;
 
-      addMessage(message, 'user');
       input.value = '';
       input.style.height = 'auto';
       hideWelcome();
+      removeSuggestionPills();
 
-      const content = extractPageContent();
-      if (!content) {
-        addMessage('Could not extract page content. Please make sure you are on a documentation page.', 'assistant');
-        return;
-      }
-
-      await sendToAI({ message, content });
+      await sendRAGMessage(message);
     }
 
-    async function sendToAI(payload: { message?: string; content: string; prompt?: string }) {
+    async function sendRAGMessage(message: string) {
+      addMessage(message, 'user');
+      conversationHistory.push({ role: 'user', content: message });
+
       isLoading = true;
       setInputEnabled(false);
       showTypingIndicator();
@@ -256,10 +250,17 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
           headers['x-api-key'] = CMS_API_KEY;
         }
 
-        const response = await fetch(`${CMS_URL}/api/ai/chat`, {
+        const { locale, collection } = getPageContext();
+
+        const response = await fetch(`${CMS_URL}/api/ai/chat-rag`, {
           method: 'POST',
           headers,
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            message,
+            locale,
+            collection,
+            history: conversationHistory.slice(-10)
+          })
         });
 
         removeTypingIndicator();
@@ -271,7 +272,23 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
         }
 
         const data = await response.json();
-        addMessage(data.response, 'assistant', true);
+        const answer = data.answer || data.response || '';
+
+        // Add to history
+        conversationHistory.push({ role: 'assistant', content: answer });
+
+        // Render answer with markdown
+        addMessage(answer, 'assistant', true);
+
+        // Render source links
+        if (data.sources && data.sources.length > 0) {
+          renderSourceLinks(data.sources);
+        }
+
+        // Render suggestion pills
+        if (data.suggestions && data.suggestions.length > 0) {
+          renderSuggestionPills(data.suggestions);
+        }
       } catch (err) {
         removeTypingIndicator();
         addMessage('Failed to connect to AI service. Please try again.', 'assistant');
@@ -302,9 +319,69 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
       messagesContainer?.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
     }
 
-    function simpleMarkdown(text: string): string {
-      // Process markdown on raw text, then sanitize text segments only
+    function renderSourceLinks(sources: Array<{ title: string; locale: string; collection: string; slug: string }>) {
+      const container = document.createElement('div');
+      container.className = 'ai-source-links';
 
+      const label = document.createElement('div');
+      label.className = 'ai-source-label';
+      label.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+        </svg>
+        <span>Sources</span>
+      `;
+      container.appendChild(label);
+
+      const pills = document.createElement('div');
+      pills.className = 'ai-source-pills';
+
+      for (const source of sources.slice(0, 3)) {
+        const link = document.createElement('a');
+        const href = source.slug
+          ? `/${source.locale || 'en'}/${source.collection}/${source.slug}`
+          : '#';
+        link.href = href;
+        link.className = 'ai-source-pill';
+        link.textContent = source.title;
+        link.title = source.title;
+        pills.appendChild(link);
+      }
+
+      container.appendChild(pills);
+      messagesContainer?.appendChild(container);
+      messagesContainer?.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+    }
+
+    function renderSuggestionPills(suggestions: string[]) {
+      removeSuggestionPills();
+
+      const container = document.createElement('div');
+      container.className = 'ai-suggestion-pills';
+      container.id = 'ai-dynamic-suggestions';
+
+      for (const text of suggestions) {
+        const btn = document.createElement('button');
+        btn.className = 'ai-suggestion-pill';
+        btn.textContent = text;
+        btn.addEventListener('click', () => {
+          hideWelcome();
+          removeSuggestionPills();
+          sendRAGMessage(text);
+        });
+        container.appendChild(btn);
+      }
+
+      messagesContainer?.appendChild(container);
+      messagesContainer?.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+    }
+
+    function removeSuggestionPills() {
+      const existing = document.getElementById('ai-dynamic-suggestions');
+      if (existing) existing.remove();
+    }
+
+    function simpleMarkdown(text: string): string {
       // Extract code blocks first to protect them
       const codeBlocks: string[] = [];
       let processed = text.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, _lang, code) => {
@@ -367,6 +444,8 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     }
 
     function showTypingIndicator() {
+      let phraseIdx = Math.floor(Math.random() * thinkingPhrases.length);
+
       const indicator = document.createElement('div');
       indicator.className = 'ai-message ai-message-assistant';
       indicator.id = 'ai-typing-indicator';
@@ -378,16 +457,29 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
             </svg>
           </div>
           <div class="ai-thinking-text">
-            <span class="ai-shimmer-text">Thinking</span>
+            <span class="ai-shimmer-text" id="ai-thinking-phrase">${thinkingPhrases[phraseIdx]}</span>
             <span class="ai-thinking-dots"><span>.</span><span>.</span><span>.</span></span>
           </div>
         </div>
       `;
       messagesContainer?.appendChild(indicator);
       messagesContainer?.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+
+      // Cycle through thinking phrases
+      thinkingInterval = setInterval(() => {
+        phraseIdx = (phraseIdx + 1) % thinkingPhrases.length;
+        const phraseEl = document.getElementById('ai-thinking-phrase');
+        if (phraseEl) {
+          phraseEl.textContent = thinkingPhrases[phraseIdx];
+        }
+      }, 2400);
     }
 
     function removeTypingIndicator() {
+      if (thinkingInterval) {
+        clearInterval(thinkingInterval);
+        thinkingInterval = null;
+      }
       const indicator = document.getElementById('ai-typing-indicator');
       if (indicator) indicator.remove();
     }
@@ -833,6 +925,82 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     color: var(--color-text-muted);
     text-align: center;
     margin: 0.5rem 0 0;
+  }
+
+  /* Source links */
+  :global(.ai-source-links) {
+    padding: 0.5rem 0;
+  }
+
+  :global(.ai-source-label) {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  :global(.ai-source-label svg) {
+    opacity: 0.6;
+  }
+
+  :global(.ai-source-pills) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  :global(.ai-source-pill) {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.5rem;
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :global(.ai-source-pill:hover) {
+    border-color: var(--color-primary);
+    background: var(--color-background-tertiary);
+  }
+
+  /* Suggestion pills */
+  :global(.ai-suggestion-pills) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.25rem 0;
+  }
+
+  :global(.ai-suggestion-pill) {
+    font-size: 0.6875rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    background: var(--color-background-secondary);
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.3;
+    transition: all 0.15s ease;
+  }
+
+  :global(.ai-suggestion-pill:hover) {
+    border-color: var(--color-primary);
+    background: var(--color-background-tertiary);
   }
 
   @media (max-width: 1024px) {
