@@ -108,14 +108,12 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
       'Finding sources', 'Connecting ideas', 'Crafting answer'
     ];
 
-    // Extract locale and collection from current URL path
-    function getPageContext(): { locale: string; collection: string } {
+    // Extract locale from current URL path
+    function getPageContext(): { locale: string } {
       const path = window.location.pathname;
-      // Expected pattern: /{locale}/{collection}/...
       const parts = path.split('/').filter(Boolean);
       return {
-        locale: parts[0] || 'en',
-        collection: parts[1] || ''
+        locale: parts[0] || 'en'
       };
     }
 
@@ -248,23 +246,44 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
 
       isLoading = true;
       setInputEnabled(false);
-      showTypingIndicator();
+      showTypingIndicator('Searching docs');
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (CMS_API_KEY) {
+        headers['x-api-key'] = CMS_API_KEY;
+      }
+
+      const { locale } = getPageContext();
+
+      // --- Phase 1: Fast document search (instant sources) ---
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (CMS_API_KEY) {
-          headers['x-api-key'] = CMS_API_KEY;
+        const searchRes = await fetch(`${CMS_URL}/api/ai/search-docs`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ query: message, locale })
+        });
+
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (searchData.sources && searchData.sources.length > 0) {
+            renderSourceLinks(searchData.sources);
+          }
         }
+      } catch {
+        // Phase 1 failed — continue to phase 2
+      }
 
-        const { locale, collection } = getPageContext();
+      // Update thinking text for phase 2
+      updateThinkingPhrase('Crafting answer');
 
+      // --- Phase 2: AI-generated answer (slower) ---
+      try {
         const response = await fetch(`${CMS_URL}/api/ai/chat-rag`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
             message,
             locale,
-            collection,
             history: conversationHistory.slice(-10)
           })
         });
@@ -286,8 +305,11 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
         // Render answer with markdown
         addMessage(answer, 'assistant', true);
 
-        // Render source links
+        // Render AI-returned source links (replaces phase 1 sources if present)
         if (data.sources && data.sources.length > 0) {
+          // Remove phase 1 sources to avoid duplication
+          const phase1Sources = messagesContainer?.querySelector('.ai-source-links:last-of-type');
+          if (phase1Sources) phase1Sources.remove();
           renderSourceLinks(data.sources);
         }
 
@@ -449,8 +471,9 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
       return div.innerHTML;
     }
 
-    function showTypingIndicator() {
+    function showTypingIndicator(initialPhrase?: string) {
       let phraseIdx = Math.floor(Math.random() * thinkingPhrases.length);
+      const startPhrase = initialPhrase || thinkingPhrases[phraseIdx];
 
       const indicator = document.createElement('div');
       indicator.className = 'ai-message ai-message-assistant';
@@ -466,7 +489,7 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
             </svg>
           </div>
           <div class="ai-thinking-text">
-            <span class="ai-shimmer-text" id="ai-thinking-phrase">${thinkingPhrases[phraseIdx]}</span>
+            <span class="ai-shimmer-text" id="ai-thinking-phrase">${startPhrase}</span>
             <span class="ai-thinking-dots"><span>.</span><span>.</span><span>.</span></span>
           </div>
         </div>
@@ -482,6 +505,13 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
           phraseEl.textContent = thinkingPhrases[phraseIdx];
         }
       }, 2400);
+    }
+
+    function updateThinkingPhrase(phrase: string) {
+      const phraseEl = document.getElementById('ai-thinking-phrase');
+      if (phraseEl) {
+        phraseEl.textContent = phrase;
+      }
     }
 
     function removeTypingIndicator() {

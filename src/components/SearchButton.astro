@@ -131,7 +131,8 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     function getPageContext() {
       const path = window.location.pathname;
       const parts = path.split('/').filter(Boolean);
-      return { locale: parts[0] || 'en', collection: parts[1] || '' };
+      // Only send locale — URL path segments don't map to DB collection names
+      return { locale: parts[0] || 'en' };
     }
 
     // --- Open / Close ---
@@ -340,46 +341,187 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
       `;
     }
 
-    // --- Search execution ---
+    // --- Search execution (two-phase: sources first, then AI answer) ---
     async function performSearch(query: string) {
       if (!query.trim()) {
         resetResults();
         return;
       }
 
-      // Cancel previous request
+      // Cancel previous requests
       if (currentRequest) {
         currentRequest.abort();
       }
       currentRequest = new AbortController();
+      const signal = currentRequest.signal;
 
       showLoading();
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (CMS_API_KEY) headers['x-api-key'] = CMS_API_KEY;
+
+      const { locale } = getPageContext();
+
+      // --- Phase 1: Fast document search (instant results) ---
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (CMS_API_KEY) headers['x-api-key'] = CMS_API_KEY;
-
-        const { locale, collection } = getPageContext();
-
-        const response = await fetch(`${CMS_URL}/api/ai/chat-rag`, {
+        const searchRes = await fetch(`${CMS_URL}/api/ai/search-docs`, {
           method: 'POST',
           headers,
-          signal: currentRequest.signal,
-          body: JSON.stringify({ message: query, locale, collection })
+          signal,
+          body: JSON.stringify({ query, locale })
         });
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          renderError(err.message || 'Search failed. Please try again.');
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (searchData.sources && searchData.sources.length > 0) {
+            // Render sources immediately + AI loading indicator on top
+            renderSourcesWithAILoading(searchData.sources);
+          }
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        // Phase 1 failed — continue to phase 2 anyway
+      }
+
+      // --- Phase 2: AI-generated answer (slower) ---
+      try {
+        const chatRes = await fetch(`${CMS_URL}/api/ai/chat-rag`, {
+          method: 'POST',
+          headers,
+          signal,
+          body: JSON.stringify({ message: query, locale })
+        });
+
+        if (signal.aborted) return;
+
+        if (!chatRes.ok) {
+          const err = await chatRes.json().catch(() => ({}));
+          // If we already have sources showing, just remove the AI loading
+          const aiLoading = results.querySelector('.search-ai-loading');
+          if (aiLoading) {
+            aiLoading.remove();
+          } else {
+            renderError(err.message || 'Search failed. Please try again.');
+          }
           return;
         }
 
-        const data = await response.json();
+        const data = await chatRes.json();
+        // Merge AI answer into existing results
         renderResults(data.answer || '', data.sources || [], data.suggestions || []);
       } catch (err: any) {
         if (err.name === 'AbortError') return;
-        renderError('Failed to connect to search service.');
+        // If we have sources showing, just remove the AI loading indicator
+        const aiLoading = results.querySelector('.search-ai-loading');
+        if (aiLoading) {
+          aiLoading.remove();
+          hideLoading();
+        } else {
+          renderError('Failed to connect to search service.');
+        }
       }
+    }
+
+    // Render sources immediately with AI loading indicator on top
+    function renderSourcesWithAILoading(sources: Array<{ title: string; collection: string; locale: string; slug: string; path?: string; snippet?: string }>) {
+      hideLoading();
+      results.innerHTML = '';
+
+      // AI loading card (will be replaced by AI answer)
+      const aiLoadingEl = document.createElement('div');
+      aiLoadingEl.className = 'search-ai-loading';
+      let phraseIdx = 0;
+      const aiPhrases = ['Generating AI answer...', 'Analyzing docs...', 'Crafting response...'];
+      aiLoadingEl.innerHTML = `
+        <div class="search-answer-card search-answer-card--loading">
+          <div class="search-answer-header">
+            <svg class="search-answer-icon" viewBox="0 0 22 22" fill="none">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M7.517 8.773L13 19.772l-5.5-1.343L2 19.772l5.515-10.999h.002z" fill="currentColor"/>
+              <path d="M16.596 7s.237 2.217 1.162 3.142c.925.925 3.142 1.162 3.142 1.162s-2.217.238-3.142 1.163c-.925.925-1.162 3.141-1.162 3.141s-.238-2.216-1.163-3.141c-.925-.926-3.142-1.163-3.142-1.163s2.217-.237 3.142-1.162C16.358 9.217 16.596 7 16.596 7z" fill="currentColor"/>
+              <path d="M13.726 4s.132 1.232.646 1.745c.514.514 1.746.646 1.746.646s-1.232.132-1.746.646c-.514.514-.646 1.745-.646 1.745s-.132-1.231-.646-1.745c-.514-.514-1.745-.646-1.745-.646s1.231-.132 1.745-.646c.514-.514.646-1.745.646-1.745z" fill="currentColor"/>
+              <path d="M18.509 3s.08.739.388 1.047c.308.308 1.047.387 1.047.387s-.739.08-1.047.388c-.308.308-.388 1.047-.388 1.047s-.079-.739-.387-1.047c-.309-.309-1.048-.388-1.048-.388s.74-.079 1.048-.387c.308-.308.387-1.047.387-1.047z" fill="currentColor"/>
+            </svg>
+            <span>AI Answer</span>
+          </div>
+          <div class="search-answer-body">
+            <div class="search-loading" style="padding: 0.5rem 0; justify-content: flex-start;">
+              <div class="search-loading-dots"><span></span><span></span><span></span></div>
+              <span class="search-ai-loading-text">${aiPhrases[0]}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      results.appendChild(aiLoadingEl);
+
+      // Cycle AI loading phrases
+      const aiInterval = setInterval(() => {
+        const textEl = aiLoadingEl.querySelector('.search-ai-loading-text');
+        if (!textEl || !aiLoadingEl.parentElement) { clearInterval(aiInterval); return; }
+        phraseIdx = (phraseIdx + 1) % aiPhrases.length;
+        textEl.textContent = aiPhrases[phraseIdx];
+      }, 2400);
+      (aiLoadingEl as any)._interval = aiInterval;
+
+      // Render source cards below
+      renderSourceCards(sources);
+    }
+
+    // Render just the source cards (reusable for phase 1)
+    function renderSourceCards(sources: Array<{ title: string; collection: string; locale: string; slug: string; path?: string; snippet?: string }>) {
+      const sourcesSection = document.createElement('div');
+      sourcesSection.className = 'search-sources-section';
+      sourcesSection.id = 'search-phase1-sources';
+
+      const sourcesLabel = document.createElement('div');
+      sourcesLabel.className = 'search-sources-label';
+      sourcesLabel.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+        </svg>
+        <span>Related docs</span>
+      `;
+      sourcesSection.appendChild(sourcesLabel);
+
+      const grid = document.createElement('div');
+      grid.className = 'search-sources-grid';
+
+      for (const source of sources.slice(0, 6)) {
+        const card = document.createElement('a');
+        const href = source.slug
+          ? `/${source.locale || 'en'}/${source.collection}/${source.slug}`
+          : '#';
+        card.href = href;
+        card.className = 'search-source-card';
+        card.setAttribute('data-search-result', '');
+
+        const iconSvg = getCollectionIcon(source.collection);
+
+        card.innerHTML = `
+          <div class="search-source-card-icon">${iconSvg}</div>
+          <div class="search-source-card-body">
+            <div class="search-source-card-title">${escapeHtml(source.title)}</div>
+            <div class="search-source-card-meta">
+              <span class="search-source-badge">${escapeHtml(source.collection || 'docs')}</span>
+              ${source.slug ? `<span class="search-source-path">/${source.slug}</span>` : ''}
+            </div>
+            ${source.snippet ? `<div class="search-source-card-snippet">${escapeHtml(source.snippet)}</div>` : ''}
+          </div>
+          <svg class="search-source-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        `;
+
+        card.addEventListener('click', () => closeSearch());
+        grid.appendChild(card);
+      }
+
+      sourcesSection.appendChild(grid);
+      results.appendChild(sourcesSection);
+
+      // Update keyboard selection
+      selectedIndex = -1;
+      updateSelection();
     }
 
     // --- Keyboard navigation ---
@@ -924,6 +1066,17 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     text-overflow: ellipsis;
   }
 
+  .search-source-card-snippet {
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   .search-source-card-arrow {
     flex-shrink: 0;
     width: 1rem;
@@ -937,6 +1090,29 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
   .search-source-card.selected .search-source-card-arrow {
     opacity: 1;
     transform: translateX(2px);
+  }
+
+  /* AI loading card (phase 1 → waiting for AI answer) */
+  .search-ai-loading {
+    animation: search-fade-in 0.3s ease;
+  }
+
+  .search-answer-card--loading {
+    opacity: 0.85;
+  }
+
+  .search-answer-card--loading .search-answer-header {
+    animation: search-ai-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes search-ai-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes search-fade-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   /* ---- Suggestions ---- */
