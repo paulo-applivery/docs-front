@@ -11,6 +11,7 @@ export const iconMap = {
   xCircle: 'solar:close-circle-linear',
   sun: 'solar:sun-2-linear',
   moon: 'solar:moon-linear',
+  calendar: 'solar:calendar-date-linear',
   language: 'solar:earth-linear',
 
   // Arrows & Chevrons

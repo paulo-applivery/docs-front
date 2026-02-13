@@ -146,20 +146,6 @@ documents.forEach((doc) => {
   if (slug) indexDocsBySlug.set(slug, doc);
 });
 
-const getCategoryMeta = (doc: Document) => {
-  const slug = getDocSlug(doc);
-  const segments = slug.split('/').filter(Boolean);
-  if (segments.length < 2) return {};
-  const categorySlug = segments.slice(0, 2).join('/');
-  const categoryDoc = indexDocsBySlug.get(categorySlug);
-  const label = categoryDoc ? getMenuLabel(categoryDoc) : formatSegmentLabel(segments[1]);
-  const icon = normalizeString(categoryDoc?.sidebar_icon || categoryDoc?.icon);
-  return {
-    category_label: label,
-    category_icon: icon || undefined,
-  };
-};
-
 // Get home settings for header/footer
 const homeSettings = settings?.home;
 
@@ -399,7 +385,6 @@ function localizeUrl(path: string): string {
         {documents.length > 0 ? (
           <ArchiveGrid
             items={documents.map(doc => {
-              const categoryMeta = getCategoryMeta(doc);
               return ({
                 id: doc.id,
                 title: doc.title,
@@ -407,11 +392,7 @@ function localizeUrl(path: string): string {
                 og_title: doc.og_title,
                 og_description: doc.og_description,
                 href: localizeUrl(`/${getDocSlug(doc)}`),
-                category: doc.category,
-                category_label: categoryMeta.category_label,
-                category_icon: categoryMeta.category_icon,
-                difficulty: doc.difficulty,
-                audience: doc.audience,
+                section: doc.section,
                 platform: doc.platform,
                 hero_image: resolveMediaUrl(doc.hero_image),
                 og_image: resolveMediaUrl(doc.og_image),
