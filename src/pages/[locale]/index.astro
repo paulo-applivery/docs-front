@@ -11,6 +11,7 @@ import SearchButton from '../../components/SearchButton.astro';
 import Icon from '../../components/Icon';
 import type { IconName } from '../../lib/icons';
 import { getDocuments, getAllSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText, type ContentSettings } from '../../lib/cms';
+import { getCollection } from 'astro:content';
 import {
   locales,
   localeNames,
@@ -26,7 +27,19 @@ function getLocalizedText(text: LocalizedText | undefined, locale: Locale, fallb
 }
 
 export async function getStaticPaths() {
-  return locales.map(locale => ({
+  const allDocs = await getCollection('docs');
+  const foundLocales = new Set<Locale>();
+
+  for (const entry of allDocs) {
+    const docLocale = entry.data.locale;
+    if (docLocale && isValidLocale(docLocale)) {
+      foundLocales.add(docLocale);
+    }
+  }
+
+  const localesToBuild = foundLocales.size > 0 ? Array.from(foundLocales) : [defaultLocale];
+
+  return localesToBuild.map(locale => ({
     params: { locale },
     props: { locale }
   }));

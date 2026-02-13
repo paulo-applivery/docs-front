@@ -10,6 +10,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Icon from '../../../components/Icon';
 import ArchiveGrid from '../../../components/ArchiveGrid.astro';
 import { getDocuments, getAllSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText } from '../../../lib/cms';
+import { getCollection } from 'astro:content';
 import {
   locales,
   localeNames,
@@ -48,12 +49,24 @@ export async function getStaticPaths() {
 
   const paths = [];
 
+  const allDocs = await getCollection('docs');
+  const foundLocales = new Set<Locale>();
+
+  for (const entry of allDocs) {
+    const docLocale = entry.data.locale;
+    if (docLocale && isValidLocale(docLocale)) {
+      foundLocales.add(docLocale);
+    }
+  }
+
+  const localesToBuild = foundLocales.size > 0 ? Array.from(foundLocales) : [defaultLocale];
+
   // Generate paths for each locale + collection combination
-  for (const locale of locales) {
+  for (const locale of localesToBuild) {
     for (const collection of collections) {
       paths.push({
         params: { locale, collection },
-        props: { locale: locale as Locale, collectionName: collection }
+        props: { locale, collectionName: collection }
       });
     }
   }
