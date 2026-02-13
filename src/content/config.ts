@@ -82,6 +82,7 @@ const docs = defineCollection({
     key_takeaways: z.any().optional(),
     noindex: z.boolean().optional(),
     featured: z.boolean().optional(),
+    show_child_grid: z.boolean().optional(),
 
     // Open Graph
     og_title: z.string().optional(),

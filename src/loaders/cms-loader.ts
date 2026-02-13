@@ -182,6 +182,7 @@ function normalizeCmsDocument(doc: any): Record<string, any> {
     key_takeaways: parseJsonField(doc.key_takeaways),
     noindex: doc.noindex === 1 || doc.noindex === true,
     featured: doc.featured === 1 || doc.featured === true,
+    show_child_grid: doc.show_child_grid === 0 || doc.show_child_grid === false ? false : true,
 
     // Open Graph
     og_title: doc.og_title || undefined,

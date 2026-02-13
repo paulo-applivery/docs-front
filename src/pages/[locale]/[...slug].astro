@@ -130,8 +130,10 @@ if (!isValidLocale(locale)) {
 const content = fullDocument.content || entry.rendered?.html || '';
 
 // For index/archive pages, find child documents from the local store
+// The show_child_grid flag (default true) controls whether the grid renders
+const showChildGrid = fullDocument.show_child_grid !== false;
 let childDocuments: typeof allDocs = [];
-if (isIndex) {
+if (isIndex && showChildGrid) {
   const folderPath = getIndexFolderPath(fullDocument);
   childDocuments = allDocs.filter((other) => {
     const d = other.data;
@@ -285,8 +287,8 @@ if (processedContent.includes('data-child-grid="true"')) {
     <p class="text-[var(--color-text-muted)]">No content available</p>
   )}
 
-  {/* For index/archive pages, show child documents in grid */}
-  {isIndex && childDocuments.length > 0 && (
+  {/* For index/archive pages, show child documents in grid (controlled by show_child_grid flag) */}
+  {isIndex && showChildGrid && childDocuments.length > 0 && (
     <ArchiveGrid
       items={childDocuments.map(d => ({
         id: d.id,
