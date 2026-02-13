@@ -157,7 +157,9 @@ function buildBreadcrumbItems() {
     if (label) folderLabels.set(slug, label);
   }
 
-  const items = [{ label: "Home", href: `/${pathLocale}/` }];
+  const items: Array<{ label: string; href: string; current?: boolean }> = [
+    { label: "Home", href: `/${pathLocale}/` },
+  ];
   let slugAcc = "";
   let hrefAcc = `/${pathLocale}`;
   const finalTitle = breadcrumbTitle || title;
