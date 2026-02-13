@@ -236,7 +236,7 @@ function buildNavigation(docs: Document[]): NavGroup[] {
     }
 
     const navItem: NavItem = {
-      label: doc.item_name || doc.title,
+      label: (doc.item_name && doc.item_name !== 'null') ? doc.item_name : doc.title,
       href,
       icon: doc.sidebar_icon || doc.icon,
       active: currentPath === href || currentPath.startsWith(href + '/'),
@@ -324,7 +324,7 @@ function buildNavigation(docs: Document[]): NavGroup[] {
       // Folder doesn't exist in tree (no children) — create it
       const href = `/${currentLocale}/${folderSlug.toLowerCase()}`;
       target[leafKey] = {
-        title: indexDoc.item_name || indexDoc.title,
+        title: (indexDoc.item_name && indexDoc.item_name !== 'null') ? indexDoc.item_name : indexDoc.title,
         items: [],
         children: {},
         icon: indexDoc.sidebar_icon || indexDoc.icon,
@@ -343,7 +343,7 @@ function buildNavigation(docs: Document[]): NavGroup[] {
         const href = `/${currentLocale}/${folderSlug.toLowerCase()}`;
         if (!node.href) node.href = href;
         node.active = currentPath === href || currentPath.startsWith(href + '/');
-        if (indexDoc.item_name) node.title = indexDoc.item_name;
+        if (indexDoc.item_name && indexDoc.item_name !== 'null') node.title = indexDoc.item_name;
         else if (indexDoc.title) node.title = indexDoc.title;
         if (indexDoc.sidebar_icon || indexDoc.icon) node.icon = indexDoc.sidebar_icon || indexDoc.icon;
       }
