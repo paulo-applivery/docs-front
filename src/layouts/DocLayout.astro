@@ -351,6 +351,7 @@ const faqSchema = isFaq
           <main class="article-main scrollbar-hide">
             <!-- Breadcrumbs - SEO optimized -->
             <Breadcrumbs
+              items={breadcrumbItems}
               currentPath={currentPath || Astro.url.pathname}
               currentTitle={breadcrumbTitle || title}
               collection={collection}
