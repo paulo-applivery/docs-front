@@ -69,6 +69,7 @@ export async function getStaticPaths() {
   }> = [];
 
   const validDocs = allDocs.filter((entry) => {
+    if (entry.data.type === 'archive') return false;
     return isValidSlug(entry.data.slug) || isValidSlug(entry.data.path);
   });
 
