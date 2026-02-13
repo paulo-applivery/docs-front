@@ -167,7 +167,7 @@ export async function getStaticPaths() {
     for (const folderPath of folderPaths) {
       if (indexFolders.has(folderPath)) continue;
       const folderSlug = extractSlugFromPath(`${folderPath}/index.md`, true);
-      if (!folderSlug || !folderSlug.includes('/')) continue;
+      if (!folderSlug) continue;
       const key = `${docLocale}:${folderSlug}`;
       if (pathKeys.has(key)) continue;
       const segment = folderSlug.split('/').pop() || folderSlug;
