@@ -222,8 +222,7 @@ if (processedContent.includes('data-child-grid="true"')) {
         const d = other.data;
         if (!d.path || other.id === entry.id) return false;
         if (d.type === 'archive') return false;
-        const filename = d.path.split('/').pop() || '';
-        if (/^index\.mdx?$/i.test(filename)) return false;
+        if (isIndexFile(d)) return false;
         const docFolder = d.path.replace(/\/[^/]+\.mdx?$/, '');
         return docFolder === ph.path;
       }).sort((a, b) => {

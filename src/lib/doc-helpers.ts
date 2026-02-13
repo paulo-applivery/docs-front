@@ -9,6 +9,15 @@ import { locales, type Locale } from './i18n';
 
 export function getIndexFolderPath(doc: { path?: string }): string {
   if (!doc.path) return '';
+  // Handle index.md/mdx files
+  const indexStripped = doc.path.replace(/\/index\.mdx?$/i, '');
+  if (indexStripped !== doc.path) return indexStripped;
+  // Handle folder-named files (ipados/ipados.md → ipados/)
+  if (isFolderNamedFile(doc.path)) {
+    const parts = doc.path.replace(/\.mdx?$/, '').split('/');
+    parts.pop(); // remove the duplicate filename
+    return parts.join('/');
+  }
   return doc.path.replace(/\/index\.mdx?$/i, '');
 }
 
@@ -16,9 +25,30 @@ export function isIndexFile(doc: { type?: string; path?: string }): boolean {
   if (doc.type === 'archive') return true;
   if (doc.path) {
     const filename = doc.path.split('/').pop() || '';
-    return /^index\.mdx?$/i.test(filename);
+    if (/^index\.mdx?$/i.test(filename)) return true;
+    // Convention: file named same as parent folder acts as folder index
+    // e.g. ipados/ipados.md, android/android.md
+    if (isFolderNamedFile(doc.path)) return true;
   }
   return false;
+}
+
+/** Check if a file is named the same as its parent folder (e.g. ipados/ipados.md) */
+function isFolderNamedFile(path: string): boolean {
+  const parts = path.replace(/\.mdx?$/, '').split('/');
+  if (parts.length < 2) return false;
+  const filename = parts[parts.length - 1].toLowerCase();
+  const folder = parts[parts.length - 2].toLowerCase();
+  return filename === folder;
+}
+
+/** Strip duplicate trailing segment when filename matches parent folder */
+function stripFolderNamedFile(slug: string): string {
+  const parts = slug.split('/');
+  if (parts.length >= 2 && parts[parts.length - 1] === parts[parts.length - 2]) {
+    parts.pop();
+  }
+  return parts.join('/');
 }
 
 export function extractSlugFromPath(path: string, isIndex: boolean): string {
@@ -32,6 +62,8 @@ export function extractSlugFromPath(path: string, isIndex: boolean): string {
     slug = slug.replace(/\/index$/i, '');
   }
   slug = slug.toLowerCase();
+  // Strip duplicate trailing segment for folder-named files (ipados/ipados → ipados)
+  slug = stripFolderNamedFile(slug);
   return slug;
 }
 
@@ -55,16 +87,17 @@ export function getPathPattern(doc: { path?: string }): string | null {
 
 export function getDocSlug(doc: { path?: string; slug?: string; id: string }): string {
   if (doc.path) {
-    return doc.path
+    let slug = doc.path
       .replace(/\.mdx?$/, '')
       .replace(/^src\/content\//, '')
       .replace(/^content\//, '')
       .replace(/^[a-z]{2}\//, '')
       .replace(/^docs\//, '')
       .toLowerCase();
+    return stripFolderNamedFile(slug);
   }
   if (doc.slug) {
-    return doc.slug.replace(/^docs\//, '').toLowerCase();
+    return stripFolderNamedFile(doc.slug.replace(/^docs\//, '').toLowerCase());
   }
   return doc.id;
 }
@@ -79,11 +112,13 @@ export function getDocUrl(doc: { path?: string; slug?: string; id: string }, doc
       .replace(/^docs\//, '')
       .replace(/\/index$/i, '')
       .toLowerCase();
+    // Strip duplicate trailing segment for folder-named files (ipados/ipados → ipados)
+    url = stripFolderNamedFile(url);
     if (!url.startsWith('/')) url = '/' + url;
     return `/${docLocale}${url}`;
   }
   if (doc.slug) {
-    return `/${docLocale}/${doc.slug.toLowerCase()}`;
+    return `/${docLocale}/${stripFolderNamedFile(doc.slug.toLowerCase())}`;
   }
   return `/${docLocale}/${doc.id}`;
 }
