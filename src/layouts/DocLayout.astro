@@ -25,6 +25,7 @@ interface Props {
   // Page metadata
   title: string;
   description?: string;
+  breadcrumbTitle?: string;
 
   // SEO
   ogTitle?: string;
@@ -64,6 +65,7 @@ interface Props {
 const {
   title,
   description,
+  breadcrumbTitle,
   ogTitle,
   ogDescription,
   ogImage,
@@ -288,7 +290,7 @@ const faqSchema = isFaq
             <!-- Breadcrumbs - SEO optimized -->
             <Breadcrumbs
               currentPath={currentPath || Astro.url.pathname}
-              currentTitle={title}
+              currentTitle={breadcrumbTitle || title}
               collection={collection}
               section={section}
               category={category}

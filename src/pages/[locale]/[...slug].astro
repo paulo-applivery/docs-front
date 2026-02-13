@@ -256,6 +256,7 @@ if (processedContent.includes('data-child-grid="true"')) {
 
 <DocLayout
   title={fullDocument.title}
+  breadcrumbTitle={(fullDocument.item_name && fullDocument.item_name !== 'null') ? fullDocument.item_name : fullDocument.title}
   description={fullDocument.description}
   ogTitle={fullDocument.og_title || fullDocument.seo_title}
   ogDescription={fullDocument.og_description || fullDocument.description}
