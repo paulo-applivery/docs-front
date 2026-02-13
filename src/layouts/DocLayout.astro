@@ -12,6 +12,7 @@ import Breadcrumbs from "../components/Breadcrumbs.astro";
 import Footer from "../components/Footer.astro";
 import AIChat from "../components/AIChat.astro";
 import { getDocuments, getAllSettings, type Document } from "../lib/cms";
+import { extractSlugFromPath, isIndexFile } from "../lib/doc-helpers";
 import {
   locales,
   localeHrefLang,
@@ -119,6 +120,65 @@ try {
 
 // Filter TOC to only h2 and h3
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+function formatSegmentLabel(segment: string): string {
+  return segment
+    .replace(/[-_]/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\bApi\b/g, "API")
+    .replace(/\bSdk\b/g, "SDK")
+    .replace(/\bCli\b/g, "CLI")
+    .replace(/\bUi\b/g, "UI")
+    .replace(/\bSso\b/g, "SSO")
+    .replace(/\bMdm\b/g, "MDM")
+    .replace(/\bEmm\b/g, "EMM")
+    .trim();
+}
+
+function getMenuLabel(doc: Document): string {
+  if (doc.item_name && doc.item_name !== "null") return doc.item_name;
+  return doc.title;
+}
+
+function buildBreadcrumbItems() {
+  const pathname = currentPath || Astro.url.pathname;
+  const segments = pathname.split("/").filter(Boolean);
+  const pathLocale = isValidLocale(segments[0]) ? segments[0] : defaultLocale;
+  const pathSegments = isValidLocale(segments[0]) ? segments.slice(1) : segments;
+  const folderLabels = new Map<string, string>();
+
+  for (const doc of documents) {
+    if (!doc.path) continue;
+    if (!isIndexFile(doc) && doc.type !== "archive") continue;
+    const slug = extractSlugFromPath(doc.path, true);
+    if (!slug) continue;
+    const label = getMenuLabel(doc);
+    if (label) folderLabels.set(slug, label);
+  }
+
+  const items = [{ label: "Home", href: `/${pathLocale}/` }];
+  let slugAcc = "";
+  let hrefAcc = `/${pathLocale}`;
+  const finalTitle = breadcrumbTitle || title;
+
+  for (let i = 0; i < pathSegments.length; i += 1) {
+    const segment = pathSegments[i];
+    const isLast = i === pathSegments.length - 1;
+    slugAcc = slugAcc ? `${slugAcc}/${segment}` : segment;
+    hrefAcc += `/${segment}`;
+    const label = isLast ? finalTitle : folderLabels.get(slugAcc) || formatSegmentLabel(segment);
+    items.push({
+      label,
+      href: hrefAcc,
+      current: isLast,
+    });
+  }
+
+  return items;
+}
+
+const breadcrumbItems = buildBreadcrumbItems();
 
 // Build Article Schema for SEO/LLM optimization
 const siteUrl = settings?.seo?.siteUrl || Astro.url.origin;
