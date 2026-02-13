@@ -5,36 +5,38 @@
  * This handles any direct access to paths like /platform/user-management
  * and redirects to /en/platform/user-management
  *
- * Note: We don't include /docs in URLs since the subdomain is already docs.applivery.com
+ * Phase 0: Uses getCollection() instead of API call
  */
+import { getCollection } from 'astro:content';
 import { defaultLocale } from '../lib/i18n';
-import { getDocuments } from '../lib/cms';
 
 export async function getStaticPaths() {
-  // Get all documents to generate redirect paths
   try {
-    const { documents } = await getDocuments({ limit: 1000 });
+    const allDocs = await getCollection('docs');
 
-    const paths = documents
-      .filter(doc => doc.path || doc.slug)
-      .map(doc => {
-        // Always derive from path to preserve folder hierarchy
+    const paths = allDocs
+      .filter(entry => entry.data.path || entry.data.slug)
+      .map(entry => {
+        const doc = entry.data;
         if (doc.path) {
           return doc.path
-            .replace(/\.mdx?$/, '')           // Remove file extension
-            .replace(/^src\/content\//, '')   // Remove src/content/ prefix
-            .replace(/^content\//, '')        // Remove content/ prefix
-            .replace(/^[a-z]{2}\//, '')       // Remove locale prefix
-            .replace(/^docs\//, '')           // Remove docs/ prefix (subdomain handles this)
-            .replace(/^\/+/, '')              // Remove leading slashes
-            .toLowerCase();                   // Lowercase for URL consistency
+            .replace(/\.mdx?$/, '')
+            .replace(/^src\/content\//, '')
+            .replace(/^content\//, '')
+            .replace(/^[a-z]{2}\//, '')
+            .replace(/^docs\//, '')
+            .replace(/^\/+/, '')
+            .toLowerCase();
         }
         return doc.slug;
       })
       .filter(Boolean)
       .filter(slug => slug && slug.includes('/'));
 
-    return paths.map(slug => ({
+    // Deduplicate slugs (multiple locales produce the same slug)
+    const uniqueSlugs = [...new Set(paths)];
+
+    return uniqueSlugs.map(slug => ({
       params: { slug },
     }));
   } catch (error) {
@@ -43,9 +45,7 @@ export async function getStaticPaths() {
   }
 }
 
-// Get the slug from the URL
 const slug = Astro.params.slug;
 
-// Redirect to the locale-prefixed version
 return Astro.redirect(`/${defaultLocale}/${slug}`, 301);
 ---

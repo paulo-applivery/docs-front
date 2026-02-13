@@ -1,0 +1,65 @@
+name: Deploy docs
+
+on:
+  repository_dispatch:
+    types: [cms_content_update]
+  push:
+    branches: [main]
+    paths:
+      - 'src/layouts/**'
+      - 'src/components/**'
+      - 'src/pages/**'
+      - 'src/loaders/**'
+      - 'src/lib/**'
+      - 'src/content/**'
+      - 'astro.config.*'
+      - 'tailwind.config.*'
+      - 'tsconfig.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'public/**'
+  workflow_dispatch: # Manual trigger from GitHub UI
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache Astro data store
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.astro
+          key: astro-data-${{ hashFiles('package-lock.json') }}
+          restore-keys: astro-data-
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          CMS_URL: ${{ secrets.CMS_URL }}
+          CMS_API_KEY: ${{ secrets.CMS_API_KEY }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://docs.applivery.com' }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=docforge-web

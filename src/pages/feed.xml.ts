@@ -2,10 +2,13 @@
  * RSS Feed Generator
  * Provides RSS 2.0 feed for documentation updates
  * Useful for SEO, LLM crawlers, and content syndication
+ *
+ * Phase 0: Uses getCollection() instead of API call
  */
 
 import type { APIRoute } from 'astro';
-import { getDocuments, getAllSettings, resolveMediaUrl } from '../lib/cms';
+import { getCollection } from 'astro:content';
+import { getAllSettings, resolveMediaUrl } from '../lib/cms';
 
 // Helper to escape XML special characters
 function escapeXml(text: string): string {
@@ -37,42 +40,38 @@ function stripHtml(html: string): string {
 }
 
 export const GET: APIRoute = async ({ site }) => {
-  // Fetch settings and documents
   let settings;
-  let documents: Awaited<ReturnType<typeof getDocuments>>['documents'] = [];
 
   try {
-    const [settingsResult, docsResult] = await Promise.all([
-      getAllSettings(),
-      getDocuments({ limit: 100, visible: true }),
-    ]);
-    settings = settingsResult;
-    documents = docsResult.documents;
+    settings = await getAllSettings();
   } catch (error) {
-    console.error('Failed to fetch data for RSS feed:', error);
-    return new Response('Error generating feed', { status: 500 });
+    console.error('Failed to fetch settings for RSS feed:', error);
   }
 
-  const siteUrl = settings?.seo?.siteUrl || site?.href || 'https://docs.applivery.io';
+  // Read from local data store — no API call
+  const allDocs = await getCollection('docs');
+
+  const siteUrl = settings?.seo?.siteUrl || site?.href || 'https://docs.applivery.com';
   const siteName = settings?.seo?.siteName || 'Documentation';
   const siteDescription = 'Technical documentation and guides';
 
-  // Sort documents by date (newest first)
-  const sortedDocs = documents
-    .filter(doc => doc.pub_date || doc.date || doc.updated_date)
+  // Sort documents by date (newest first), filter to those with dates and visible
+  const sortedDocs = allDocs
+    .filter(entry => {
+      const d = entry.data;
+      return d.visible !== false && (d.pub_date || d.date || d.updated_date);
+    })
     .sort((a, b) => {
-      const dateA = new Date(a.updated_date || a.pub_date || a.date || 0);
-      const dateB = new Date(b.updated_date || b.pub_date || b.date || 0);
+      const dateA = new Date(a.data.updated_date || a.data.pub_date || a.data.date || 0);
+      const dateB = new Date(b.data.updated_date || b.data.pub_date || b.data.date || 0);
       return dateB.getTime() - dateA.getTime();
     })
-    .slice(0, 50); // Limit to 50 items
+    .slice(0, 50);
 
-  // Find the most recent update date
   const lastBuildDate = sortedDocs.length > 0
-    ? formatRssDate(sortedDocs[0].updated_date || sortedDocs[0].pub_date || sortedDocs[0].date)
+    ? formatRssDate(sortedDocs[0].data.updated_date || sortedDocs[0].data.pub_date || sortedDocs[0].data.date)
     : new Date().toUTCString();
 
-  // Build RSS feed
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
   xmlns:atom="http://www.w3.org/2005/Atom"
@@ -94,11 +93,12 @@ export const GET: APIRoute = async ({ site }) => {
       <title>${escapeXml(siteName)}</title>
       <link>${siteUrl}</link>
     </image>` : ''}
-    ${sortedDocs.map(doc => {
+    ${sortedDocs.map(entry => {
+      const doc = entry.data;
       const collection = doc.collection || 'docs';
       const slug = doc.path
         ? doc.path.replace(/\.mdx?$/, '').replace(/^src\/content\//, '').replace(/^content\//, '').replace(/^\/+/, '').toLowerCase()
-        : (doc.slug || doc.id);
+        : (doc.slug || entry.id);
       const itemUrl = `${siteUrl}/${slug}`;
       const pubDate = formatRssDate(doc.pub_date || doc.date);
       const description = doc.description || doc.tldr || '';
@@ -122,7 +122,7 @@ export const GET: APIRoute = async ({ site }) => {
   return new Response(rss.trim(), {
     headers: {
       'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+      'Cache-Control': 'public, max-age=3600',
     },
   });
 };
