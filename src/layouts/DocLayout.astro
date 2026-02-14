@@ -414,7 +414,9 @@ const faqSchema = isFaq
             }
 
             <!-- Footer Navigation -->
-            <Footer />
+            <div class="mt-auto">
+              <Footer />
+            </div>
           </main>
 
           <!-- Table of Contents (Right Sidebar) -->
@@ -622,6 +624,8 @@ const faqSchema = isFaq
     height: 100%;
     overflow-y: auto;
     padding-right: 1rem;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Footer inside article-main */

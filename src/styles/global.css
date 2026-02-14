@@ -374,7 +374,8 @@
   }
 
   .header-nav {
-    @apply flex items-center gap-6;
+    @apply flex items-center gap-2;
+    margin-right: 16px;
   }
 
   .header-nav-item {
