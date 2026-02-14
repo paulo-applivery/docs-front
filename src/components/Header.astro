@@ -13,9 +13,10 @@ interface Props {
   navigation?: NavigationItem[];
   topMenu?: TopMenuConfig;
   sideMenu?: SideMenuConfig;
+  locale?: string;
 }
 
-const { navigation = [], topMenu, sideMenu } = Astro.props;
+const { navigation = [], topMenu, sideMenu, locale = 'en' } = Astro.props;
 
 // Extract tabs from sideMenu for header rendering
 interface TabItem {
@@ -54,9 +55,17 @@ const tabsJson = JSON.stringify(tabs);
 function convertTopMenuToNav(config: TopMenuConfig): NavigationItem[] {
   return config.items.map(item => {
     if (item.type === 'folder') {
+      let href = item.folder ? `/${locale}/${item.folder}` : '#';
+      
+      // Add trailing slash for collection index pages
+      const collectionIndexes = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
+      if (item.folder && collectionIndexes.includes(item.folder.toLowerCase()) && !href.endsWith('/')) {
+        href += '/';
+      }
+
       return {
         label: item.label,
-        href: item.folder ? `/${item.folder}` : '#',
+        href,
         icon: undefined,
         external: false,
       };
@@ -65,10 +74,20 @@ function convertTopMenuToNav(config: TopMenuConfig): NavigationItem[] {
     return {
       label: item.label,
       href: '#',
-      children: item.children?.map(child => ({
-        label: child.label,
-        href: child.folder ? `/${child.folder}` : '#',
-      })),
+      children: item.children?.map(child => {
+        let href = child.folder ? `/${locale}/${child.folder}` : '#';
+        
+        // Add trailing slash for collection index pages
+        const collectionIndexes = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
+        if (child.folder && collectionIndexes.includes(child.folder.toLowerCase()) && !href.endsWith('/')) {
+          href += '/';
+        }
+
+        return {
+          label: child.label,
+          href,
+        };
+      }),
     };
   });
 }

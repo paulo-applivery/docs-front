@@ -565,9 +565,16 @@ if (sideMenu?.items) {
 
       for (const source of sources.slice(0, 6)) {
         const card = document.createElement('a');
-        const href = source.slug
+        let href = source.slug
           ? `/${source.locale || 'en'}/${source.slug}`
           : '#';
+        
+        // Ensure trailing slash for collection index pages to avoid redirects
+        const collectionIndexes = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
+        if (source.slug && collectionIndexes.includes(source.slug) && !href.endsWith('/')) {
+          href += '/';
+        }
+        
         card.href = href;
         card.className = 'search-source-card';
         card.setAttribute('data-search-result', '');
