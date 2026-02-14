@@ -218,6 +218,82 @@ function buildBreadcrumbItems() {
 
 const breadcrumbItems = buildBreadcrumbItems();
 
+// --- Next/Previous Navigation Logic ---
+interface FlatNavItem {
+  label: string;
+  href: string;
+}
+
+function flattenNavigation(docs: Document[], sideMenu: any, currentLocale: Locale, currentPath: string): FlatNavItem[] {
+  const isManualMode = sideMenu?.mode === 'manual' && sideMenu.items && sideMenu.items.length > 0;
+  const flatLinks: FlatNavItem[] = [];
+
+  if (isManualMode) {
+    const products: any[] = [];
+    const nonProductItems: any[] = [];
+    
+    for (const item of sideMenu.items) {
+      if (item.type === 'product' && !item.hidden) {
+        products.push(item);
+      } else if (item.type !== 'tab' && !item.hidden) {
+        nonProductItems.push(item);
+      }
+    }
+
+    const itemsToProcess = products.length > 0 ? nonProductItems : sideMenu.items;
+
+    function processManualItems(items: any[]) {
+      for (const item of items) {
+        if (item.hidden) continue;
+        if (item.type === 'page' || item.type === 'anchor') {
+          if (item.href && !item.href.startsWith('http')) {
+            flatLinks.push({ label: item.label, href: item.href });
+          }
+        }
+        if (item.children) {
+          processManualItems(item.children);
+        }
+      }
+    }
+    processManualItems(itemsToProcess);
+  } else {
+    // Auto mode - match Sidebar.astro sorting
+    const sortedDocs = [...docs]
+      .filter(doc => doc.visible !== false && doc.visible !== 0 && doc.locale === currentLocale)
+      .sort((a, b) => {
+        const posA = a.sidebar_position ?? a.order_num ?? a.weight ?? 999;
+        const posB = b.sidebar_position ?? b.order_num ?? b.weight ?? 999;
+        if (posA !== posB) return posA - posB;
+        return (a.path || '').localeCompare(b.path || '');
+      });
+
+    for (const doc of sortedDocs) {
+      // Skip index files and archives in auto mode - match Sidebar.astro
+      if (isIndexFile(doc) || doc.type === 'archive') continue;
+      
+      const slug = doc.path ? extractSlugFromPath(doc.path, false) : (doc.slug?.replace(/^docs\//, '') || doc.id);
+      if (!slug) continue;
+      
+      const href = `/${currentLocale}/${slug.toLowerCase()}`;
+      flatLinks.push({
+        label: (doc.item_name && doc.item_name !== 'null') ? doc.item_name : doc.title,
+        href
+      });
+    }
+  }
+  return flatLinks;
+}
+
+const flatNav = flattenNavigation(documents, settings?.navigation?.sideMenu, currentLocale, currentPath || Astro.url.pathname);
+const currentNormalizedPath = (currentPath || Astro.url.pathname).replace(/\/+$/, '');
+const currentIndex = flatNav.findIndex(item => item.href.replace(/\/+$/, '') === currentNormalizedPath);
+
+const prevPage = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined;
+const nextPage = currentIndex >= 0 && currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : undefined;
+
+const editUrl = settings?.navigation?.footer?.editUrl;
+const hasFooter = !!(prevPage || nextPage || editUrl || dateModified);
+
 // Build Article Schema for SEO/LLM optimization
 const siteUrl = settings?.seo?.siteUrl || Astro.url.origin;
 const siteName = settings?.seo?.siteName || "Documentation";
@@ -385,7 +461,7 @@ const faqSchema = isFaq
         <!-- Content Container with border - wraps content + TOC -->
         <div class="content-container">
           <!-- Article Content -->
-          <main class="article-main scrollbar-hide">
+          <main class:list={["article-main scrollbar-hide", { "no-footer": !hasFooter }]}>
             <!-- Breadcrumbs - SEO optimized -->
             <Breadcrumbs
               items={breadcrumbItems}
@@ -454,7 +530,12 @@ const faqSchema = isFaq
 
             <!-- Footer Navigation -->
             <div class="mt-auto">
-              <Footer />
+              <Footer 
+                prevPage={prevPage ? { title: prevPage.label, href: prevPage.href } : undefined}
+                nextPage={nextPage ? { title: nextPage.label, href: nextPage.href } : undefined}
+                editUrl={editUrl}
+                lastUpdated={dateModified}
+              />
             </div>
           </main>
 
@@ -665,6 +746,10 @@ const faqSchema = isFaq
     padding-right: 1rem;
     display: flex;
     flex-direction: column;
+  }
+
+  .article-main.no-footer {
+    padding-bottom: 32px;
   }
 
   /* Footer inside article-main */
