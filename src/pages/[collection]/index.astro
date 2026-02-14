@@ -9,7 +9,7 @@ import { defaultLocale } from '../../lib/i18n';
 
 export function getStaticPaths() {
   // Define the allowed collections
-  const collections = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
+  const collections = ['docs', 'academy', 'insights', 'glossary', 'answers', 'product-updates', 'about'];
 
   return collections.map(collection => ({
     params: { collection },

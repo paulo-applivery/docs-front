@@ -267,6 +267,11 @@ if (!isValidLocale(locale)) {
   return Astro.redirect(`/${defaultLocale}/`, 301);
 }
 
+// Redirect to /en/roadmap/ if someone accesses /en/roadmap without trailing slash
+if (Astro.url.pathname.endsWith('/roadmap')) {
+  return Astro.redirect(`${Astro.url.pathname}/`, 301);
+}
+
 // Content is already in the data store — no API call needed
 const content = fullDocument.content || entry?.rendered?.html || '';
 
