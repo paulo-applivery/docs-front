@@ -7,10 +7,10 @@
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import SearchButton from '../../components/SearchButton.astro';
 import Icon from '../../components/Icon';
+import AIPoweredSearch from '../../components/AIPoweredSearch.astro';
 import type { IconName } from '../../lib/icons';
-import { getDocuments, getAllSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText } from '../../lib/cms';
+import { getDocuments, getAllSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText, type NavigationSettings } from '../../lib/cms';
 import { readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import {
@@ -74,6 +74,18 @@ try {
 
 // Get home settings
 const homeSettings = settings?.home;
+
+// Extract icon mapping from sideMenu settings
+const navigation = settings?.navigation as NavigationSettings | undefined;
+const sideMenu = navigation?.sideMenu;
+const collectionIcons: Record<string, string> = {};
+if (sideMenu?.items) {
+  sideMenu.items.forEach((item) => {
+    if (item.collection && item.icon) {
+      collectionIcons[item.collection] = item.icon;
+    }
+  });
+}
 
 // Detect available locales from home settings translations
 // Only show languages that have actual content in the CMS
@@ -168,7 +180,7 @@ function localizeUrl(path: string): string {
 >
   <div class="min-h-screen bg-[var(--color-background)] flex flex-col">
     <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 h-16 bg-[var(--color-background)]/80 backdrop-blur-md border-b border-[var(--color-border)] z-50">
+    <header id="site-header" class="fixed top-0 left-0 right-0 h-16 bg-[var(--color-background)]/80 backdrop-blur-md border-b border-[var(--color-border)] z-50">
       <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         <!-- Logo -->
         <a href={localizeUrl('/')} class="flex items-center gap-3">
@@ -255,11 +267,6 @@ function localizeUrl(path: string): string {
             <Icon name="moon" className="w-5 h-5 block dark:hidden" aria-hidden={true} client:only="react" />
           </button>
 
-          <!-- Search (hidden button, modal rendered) -->
-          <div class="hidden">
-            <SearchButton />
-          </div>
-
           <a href={localizeUrl(ctaHref)} class="btn btn-primary">
             {ctaLabel}
           </a>
@@ -267,104 +274,101 @@ function localizeUrl(path: string): string {
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="pt-32 pb-20 px-6">
-      <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-4xl md:text-6xl font-bold text-[var(--color-text-primary)] mb-6">
-          {heroTitle} <span class="text-[var(--color-primary)]">{heroHighlight}</span>
-        </h1>
-        <p class="text-xl text-[var(--color-text-secondary)] mb-8 max-w-2xl mx-auto">
-          {heroSubtitle}
-        </p>
+    <div id="home-content" class="transition-all duration-300">
+      <!-- Hero Section -->
+      <section class="pt-32 pb-20 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+          <h1 class="text-4xl md:text-6xl font-bold text-[var(--color-text-primary)] mb-6">
+            {heroTitle} <span class="text-[var(--color-primary)]">{heroHighlight}</span>
+          </h1>
+          <p class="text-xl text-[var(--color-text-secondary)] mb-8 max-w-2xl mx-auto">
+            {heroSubtitle}
+          </p>
 
-        <!-- Search -->
-        <div class="max-w-xl mx-auto mb-8">
-          <button
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-background-secondary)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)] transition-colors"
-            id="hero-search"
-          >
-            <Icon name="search" className="w-5 h-5" aria-hidden={true} client:only="react" />
-            <span>{searchPlaceholder}</span>
-            <kbd class="ml-auto px-2 py-1 rounded bg-[var(--color-background-tertiary)] text-xs">
-              ⌘K
-            </kbd>
-          </button>
-        </div>
+          <!-- Search -->
+          <AIPoweredSearch 
+            placeholder={searchPlaceholder} 
+            locale={locale} 
+            collectionIcons={collectionIcons}
+            contentSelector="#home-content"
+            hideHeader={true}
+          />
 
-        <!-- Quick links -->
-        {quickLinksItems.length > 0 ? (
-          <div class="flex flex-wrap justify-center gap-4">
-            {quickLinksItems.map(link => (
-              <a
-                href={link.external ? link.href : localizeUrl(link.href)}
-                target={link.external ? '_blank' : undefined}
-                rel={link.external ? 'noopener noreferrer' : undefined}
-                class="btn btn-secondary"
-              >
-                {link.icon && (
-                  <Icon name={link.icon as any} className="w-4 h-4" aria-hidden={true} client:only="react" />
-                )}
-                {getLocalizedText(link.label, locale, '')}
+          <!-- Quick links -->
+          {quickLinksItems.length > 0 ? (
+            <div class="flex flex-wrap justify-center gap-4">
+              {quickLinksItems.map(link => (
+                <a
+                  href={link.external ? link.href : localizeUrl(link.href)}
+                  target={link.external ? '_blank' : undefined}
+                  rel={link.external ? 'noopener noreferrer' : undefined}
+                  class="btn btn-secondary"
+                >
+                  {link.icon && (
+                    <Icon name={link.icon as any} className="w-4 h-4" aria-hidden={true} client:only="react" />
+                  )}
+                  {getLocalizedText(link.label, locale, '')}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div class="flex flex-wrap justify-center gap-4">
+              <a href={localizeUrl('/getting-started')} class="btn btn-secondary">
+                <Icon name="bolt" className="w-4 h-4" aria-hidden={true} client:only="react" />
+                Quickstart
               </a>
-            ))}
-          </div>
-        ) : (
-          <div class="flex flex-wrap justify-center gap-4">
-            <a href={localizeUrl('/getting-started')} class="btn btn-secondary">
-              <Icon name="bolt" className="w-4 h-4" aria-hidden={true} client:only="react" />
-              Quickstart
-            </a>
-            <a href={localizeUrl('/api')} class="btn btn-secondary">
-              <Icon name="code" className="w-4 h-4" aria-hidden={true} client:only="react" />
-              API Reference
-            </a>
-          </div>
-        )}
-      </div>
-    </section>
-
-    <!-- Featured Articles -->
-    {showFeatured && featuredDocs.length > 0 && (
-      <section class="py-16 px-6 bg-[var(--color-background-secondary)]">
-        <div class="max-w-6xl mx-auto">
-          <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-8 text-center">
-            {featuredTitle}
-          </h2>
-
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredDocs.map(doc => {
-              // Extract slug: remove file extension, content prefix, locale prefix, docs/ prefix
-              const docSlug = (doc.path?.replace(/\.mdx?$/, '').replace(/^src\/content\//, '').replace(/^content\//, '').replace(/^[a-z]{2}\//, '').replace(/^docs\//, '').replace(/^\/+/, '').toLowerCase()) || doc.slug?.toLowerCase() || doc.id;
-              return (
-              <a href={localizeUrl(`/${docSlug}`)} class="card">
-                {doc.hero_image && (
-                  <img
-                    src={resolveMediaUrl(doc.hero_image)}
-                    alt={doc.image_alt || doc.title}
-                    class="w-full h-40 object-cover rounded-lg mb-4"
-                  />
-                )}
-                <span class="badge badge-primary mb-2">{doc.collection}</span>
-                <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-                  {doc.title}
-                </h3>
-                {doc.description && (
-                  <p class="text-sm text-[var(--color-text-secondary)] line-clamp-2">
-                    {doc.description}
-                  </p>
-                )}
-                {doc.reading_time && (
-                  <p class="text-xs text-[var(--color-text-muted)] mt-3">
-                    {doc.reading_time} min read
-                  </p>
-                )}
+              <a href={localizeUrl('/api')} class="btn btn-secondary">
+                <Icon name="code" className="w-4 h-4" aria-hidden={true} client:only="react" />
+                API Reference
               </a>
-              );
-            })}
-          </div>
+            </div>
+          )}
         </div>
       </section>
-    )}
+
+      <!-- Featured Articles -->
+      {showFeatured && featuredDocs.length > 0 && (
+        <section class="py-16 px-6 bg-[var(--color-background-secondary)]">
+          <div class="max-w-6xl mx-auto">
+            <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-8 text-center">
+              {featuredTitle}
+            </h2>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredDocs.map(doc => {
+                // Extract slug: remove file extension, content prefix, locale prefix, docs/ prefix
+                const docSlug = (doc.path?.replace(/\.mdx?$/, '').replace(/^src\/content\//, '').replace(/^content\//, '').replace(/^[a-z]{2}\//, '').replace(/^docs\//, '').replace(/^\/+/, '').toLowerCase()) || doc.slug?.toLowerCase() || doc.id;
+                return (
+                <a href={localizeUrl(`/${docSlug}`)} class="card">
+                  {doc.hero_image && (
+                    <img
+                      src={resolveMediaUrl(doc.hero_image)}
+                      alt={doc.image_alt || doc.title}
+                      class="w-full h-40 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <span class="badge badge-primary mb-2">{doc.collection}</span>
+                  <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+                    {doc.title}
+                  </h3>
+                  {doc.description && (
+                    <p class="text-sm text-[var(--color-text-secondary)] line-clamp-2">
+                      {doc.description}
+                    </p>
+                  )}
+                  {doc.reading_time && (
+                    <p class="text-xs text-[var(--color-text-muted)] mt-3">
+                      {doc.reading_time} min read
+                    </p>
+                  )}
+                </a>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
 
     <!-- Footer (pushed to bottom via flex) -->
     <footer class="mt-auto py-12 px-6 border-t border-[var(--color-border)] bg-[var(--color-background)]">

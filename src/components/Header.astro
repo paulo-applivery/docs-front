@@ -14,9 +14,10 @@ interface Props {
   topMenu?: TopMenuConfig;
   sideMenu?: SideMenuConfig;
   locale?: string;
+  faviconUrl?: string;
 }
 
-const { navigation = [], topMenu, sideMenu, locale = 'en' } = Astro.props;
+const { navigation = [], topMenu, sideMenu, locale = 'en', faviconUrl = '/favicon.svg' } = Astro.props;
 
 // Extract tabs from sideMenu for header rendering
 interface TabItem {
@@ -115,6 +116,12 @@ if (topMenu && topMenu.items && topMenu.items.length > 0) {
   >
     <Icon name="menu" className="w-6 h-6" aria-hidden={true} client:only="react" />
   </button>
+  <img
+    src={faviconUrl}
+    alt="Favicon"
+    class="mobile-favicon lg:hidden"
+    loading="lazy"
+  />
 
   <!-- Header center content - nav and/or tabs with alignment -->
   <div class={`header-center ${alignment === 'left' ? 'justify-start' : alignment === 'right' ? 'justify-end' : 'justify-center'}`}>
@@ -530,6 +537,14 @@ if (topMenu && topMenu.items && topMenu.items.length > 0) {
 
   .ai-btn-text {
     display: none;
+  }
+
+  .mobile-favicon {
+    width: 24px;
+    height: 24px;
+    margin-left: 0.25rem;
+    border-radius: 6px;
+    object-fit: contain;
   }
 
   @media (min-width: 640px) {

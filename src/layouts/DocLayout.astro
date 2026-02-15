@@ -454,6 +454,7 @@ const faqSchema = isFaq
         topMenu={settings?.navigation?.topMenu}
         sideMenu={settings?.navigation?.sideMenu}
         locale={currentLocale}
+        faviconUrl={settings?.appearance?.branding?.favicon || settings?.appearance?.faviconUrl || '/favicon.svg'}
       />
 
       <!-- Content area with container and AI chat side by side -->
