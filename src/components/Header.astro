@@ -116,12 +116,14 @@ if (topMenu && topMenu.items && topMenu.items.length > 0) {
   >
     <Icon name="menu" className="w-6 h-6" aria-hidden={true} client:only="react" />
   </button>
-  <img
-    src={faviconUrl}
-    alt="Favicon"
-    class="mobile-favicon lg:hidden"
-    loading="lazy"
-  />
+  <a href={`/${locale}/`} class="mobile-favicon-link lg:hidden" aria-label="Go to home">
+    <img
+      src={faviconUrl}
+      alt="Favicon"
+      class="mobile-favicon"
+      loading="lazy"
+    />
+  </a>
 
   <!-- Header center content - nav and/or tabs with alignment -->
   <div class={`header-center ${alignment === 'left' ? 'justify-start' : alignment === 'right' ? 'justify-end' : 'justify-center'}`}>
@@ -545,6 +547,11 @@ if (topMenu && topMenu.items && topMenu.items.length > 0) {
     margin-left: 0.25rem;
     border-radius: 6px;
     object-fit: contain;
+  }
+
+  .mobile-favicon-link {
+    display: inline-flex;
+    align-items: center;
   }
 
   @media (min-width: 640px) {
