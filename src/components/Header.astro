@@ -54,16 +54,31 @@ const tabsJson = JSON.stringify(tabs);
 
 // Convert TopMenuConfig to NavigationItem[] for rendering
 function convertTopMenuToNav(config: TopMenuConfig): NavigationItem[] {
-  return config.items.map(item => {
-    if (item.type === 'folder') {
-      let href = item.folder ? `/${locale}/${item.folder}` : '#';
-      
-      // Add trailing slash for collection index pages
-      const collectionIndexes = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
-      if (item.folder && collectionIndexes.includes(item.folder.toLowerCase()) && !href.endsWith('/')) {
-        href += '/';
-      }
+  const collectionIndexes = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
 
+  function resolveChildHref(child: { type?: string; folder?: string; href?: string; external?: boolean }) {
+    if (child.type === 'link' && child.href) {
+      return { href: child.href, external: child.external ?? child.href.startsWith('http') };
+    }
+    let href = child.folder ? `/${locale}/${child.folder}` : '#';
+    if (child.folder && collectionIndexes.includes(child.folder.toLowerCase()) && !href.endsWith('/')) {
+      href += '/';
+    }
+    return { href, external: false };
+  }
+
+  return config.items.map(item => {
+    if (item.type === 'link') {
+      const isExternal = item.external ?? (item.href?.startsWith('http') || false);
+      return {
+        label: item.label,
+        href: item.href || '#',
+        icon: undefined,
+        external: isExternal,
+      };
+    }
+    if (item.type === 'folder') {
+      const { href } = resolveChildHref(item);
       return {
         label: item.label,
         href,
@@ -76,17 +91,11 @@ function convertTopMenuToNav(config: TopMenuConfig): NavigationItem[] {
       label: item.label,
       href: '#',
       children: item.children?.map(child => {
-        let href = child.folder ? `/${locale}/${child.folder}` : '#';
-        
-        // Add trailing slash for collection index pages
-        const collectionIndexes = ['docs', 'academy', 'insights', 'roadmap', 'glossary', 'answers', 'product-updates', 'about'];
-        if (child.folder && collectionIndexes.includes(child.folder.toLowerCase()) && !href.endsWith('/')) {
-          href += '/';
-        }
-
+        const { href, external } = resolveChildHref(child);
         return {
           label: child.label,
           href,
+          external,
         };
       }),
     };

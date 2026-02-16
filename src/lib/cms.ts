@@ -383,20 +383,24 @@ export interface NavigationItem {
 // New navigation types matching admin panel
 export interface TopMenuChild {
   id: string;
-  type: "folder";
-  folder: string;
+  type: "folder" | "link";
+  folder?: string;
   label: string;
-  navigation: "1-level" | "2-level" | "3-level";
+  navigation?: "1-level" | "2-level" | "3-level";
   path?: string;
+  href?: string;
+  external?: boolean;
 }
 
 export interface TopMenuItem {
   id: string;
-  type: "multiple_menus" | "folder";
+  type: "multiple_menus" | "folder" | "link";
   label: string;
   folder?: string;
   navigation?: "1-level" | "2-level" | "3-level";
   children?: TopMenuChild[];
+  href?: string;
+  external?: boolean;
 }
 
 export interface TopMenuConfig {
