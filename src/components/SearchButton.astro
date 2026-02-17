@@ -69,6 +69,18 @@ if (sideMenu?.items) {
         <kbd class="search-esc-badge">ESC</kbd>
       </div>
 
+      <!-- Scope Tabs -->
+      <div class="search-tabs" id="search-tabs">
+        <button class="search-tab active" data-search-scope="docs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          Docs
+        </button>
+        <button class="search-tab" data-search-scope="api">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 6L10 18.5M6.5 8.5L3 12L6.5 15.5M17.5 8.5L21 12L17.5 15.5"/></svg>
+          API Reference
+        </button>
+      </div>
+
       <!-- Search Results -->
       <div id="search-results" class="search-results">
         <div class="search-empty-state">
@@ -168,6 +180,38 @@ if (sideMenu?.items) {
     let selectedIndex = -1;
     let isLoading = false;
     let currentQuery = '';
+
+    // Scope tabs (docs vs api) — default to docs, user can click to switch
+    let currentScope: 'docs' | 'api' = 'docs';
+
+    // Initialize tab state
+    const searchTabs = modal.querySelectorAll('.search-tab[data-search-scope]');
+    function updateTabState() {
+      searchTabs.forEach(tab => {
+        const scope = (tab as HTMLElement).dataset.searchScope;
+        tab.classList.toggle('active', scope === currentScope);
+      });
+      input.placeholder = currentScope === 'api'
+        ? 'Search API reference...'
+        : 'Search documentation...';
+    }
+
+    searchTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const scope = (tab as HTMLElement).dataset.searchScope as 'docs' | 'api';
+        if (scope === currentScope) return;
+        currentScope = scope;
+        updateTabState();
+        // Re-trigger search if there's a query
+        if (input.value.trim()) {
+          performSearch(input.value.trim());
+        } else {
+          resetResults();
+        }
+      });
+    });
+
+    updateTabState();
 
     // Thinking phrases
     const thinkingPhrases = [
@@ -445,7 +489,7 @@ if (sideMenu?.items) {
           method: 'POST',
           headers,
           signal,
-          body: JSON.stringify({ query, locale })
+          body: JSON.stringify({ query, locale, scope: currentScope })
         });
 
         if (searchRes.ok) {
@@ -466,7 +510,7 @@ if (sideMenu?.items) {
           method: 'POST',
           headers,
           signal,
-          body: JSON.stringify({ message: query, locale })
+          body: JSON.stringify({ message: query, locale, scope: currentScope })
         });
 
         if (signal.aborted) return;
@@ -896,6 +940,51 @@ if (sideMenu?.items) {
     color: var(--color-text-muted);
     font-family: inherit;
     border: none;
+  }
+
+  /* ---- Scope tabs ---- */
+  .search-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .search-tab svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .search-tab:hover {
+    color: var(--color-text-primary);
+    background: var(--color-background-secondary);
+  }
+
+  .search-tab.active {
+    color: var(--color-primary, #6366f1);
+    background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.08);
+    border-color: rgba(var(--color-primary-rgb, 99, 102, 241), 0.15);
+  }
+
+  .dark .search-tab.active {
+    background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.12);
+    border-color: rgba(var(--color-primary-rgb, 99, 102, 241), 0.2);
   }
 
   /* ---- Results container ---- */
