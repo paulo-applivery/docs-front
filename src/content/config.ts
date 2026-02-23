@@ -11,9 +11,13 @@ const baseSchema = z.object({
   title: z.string(),
 
   // Organization
-  collection: z.enum(['docs', 'academy', 'insights', 'glossary', 'answers', 'about', 'product-updates', 'roadmap']).optional(),
+  collection: z.enum(['docs', 'api', 'academy', 'insights', 'glossary', 'answers', 'about', 'product-updates', 'roadmap']).optional(),
   locale: z.enum(['en', 'es', 'fr', 'de', 'pt', 'it', 'ja', 'zh', 'ko']).default('en'),
   type: z.enum(['article', 'archive']).default('article'),
+
+  // System / CMS metadata
+  path: z.string().optional(),
+  order_num: z.number().optional(),
 
   // Navigation
   sidebar_position: z.number().optional(),
@@ -28,8 +32,14 @@ const baseSchema = z.object({
   // SEO Basic
   description: z.string().optional(),
   seo_title: z.string().optional(),
+  headline: z.string().optional(),
   canonical: z.string().url().optional(),
   keywords: z.array(z.string()).optional(),
+
+  // Open Graph
+  og_title: z.string().optional(),
+  og_description: z.string().optional(),
+  og_image: z.string().optional(),
 
   // Media
   hero_image: z.string().optional(),
@@ -52,6 +62,11 @@ const baseSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   platform: z.enum(['web', 'ios', 'android', 'windows']).optional(),
   related: z.array(z.string()).optional(),
+
+  // Content metadata
+  featured: z.boolean().optional(),
+  reading_time: z.number().optional(),
+  tldr: z.string().optional(),
 
   // Structured Data
   schema_type: z.enum(['Article', 'HowTo', 'FAQPage']).optional(),
@@ -91,8 +106,6 @@ const academyCollection = defineCollection({
 const insightsCollection = defineCollection({
   type: 'content',
   schema: baseSchema.extend({
-    featured: z.boolean().optional(),
-    reading_time: z.number().optional(),
     tags: z.array(z.string()).optional(),
   }),
 });

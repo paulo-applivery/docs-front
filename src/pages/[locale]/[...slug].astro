@@ -616,7 +616,7 @@ if (isApiPage && processedContent) {
           image_alt: d.data.image_alt,
           reading_time: d.data.reading_time,
           featured: d.data.featured,
-          pub_date: d.data.pub_date,
+          pub_date: d.data.pub_date?.toISOString(),
         });
       })}
       pageTitle={fullDocument.title}

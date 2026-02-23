@@ -21,10 +21,10 @@ function escapeXml(text: string): string {
 }
 
 // Helper to format date for RSS (RFC 822)
-function formatRssDate(dateString: string | undefined): string {
-  if (!dateString) return new Date().toUTCString();
+function formatRssDate(dateInput: string | Date | undefined): string {
+  if (!dateInput) return new Date().toUTCString();
   try {
-    return new Date(dateString).toUTCString();
+    return dateInput instanceof Date ? dateInput.toUTCString() : new Date(dateInput).toUTCString();
   } catch {
     return new Date().toUTCString();
   }
