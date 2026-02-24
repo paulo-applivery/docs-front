@@ -93,6 +93,7 @@ const withCollectionPrefix = (slug: string, collection?: string): string => {
 
 export function getDocSlug(doc: { path?: string; slug?: string; id: string; collection?: string }): string {
   if (doc.path) {
+    // When path exists, derive slug entirely from path (authoritative source)
     let pathSlug = doc.path
       .replace(/\.mdx?$/, '')
       .replace(/^src\/content\//, '')
@@ -101,13 +102,6 @@ export function getDocSlug(doc: { path?: string; slug?: string; id: string; coll
       .replace(/^docs\//, '')
       .toLowerCase();
     pathSlug = stripFolderNamedFile(pathSlug);
-
-    // If a custom slug is set, replace the filename portion with it
-    if (doc.slug && doc.slug.trim() && doc.slug !== 'null') {
-      const parts = pathSlug.split('/');
-      parts[parts.length - 1] = doc.slug.toLowerCase();
-      return parts.join('/');
-    }
     return pathSlug;
   }
   if (doc.slug) {
@@ -127,13 +121,6 @@ export function getDocUrl(doc: { path?: string; slug?: string; id: string; colle
       .replace(/\/index$/i, '')
       .toLowerCase();
     url = stripFolderNamedFile(url);
-
-    // If a custom slug is set, replace the filename portion with it
-    if (doc.slug && doc.slug.trim() && doc.slug !== 'null') {
-      const parts = url.split('/');
-      parts[parts.length - 1] = doc.slug.toLowerCase();
-      url = parts.join('/');
-    }
 
     if (!url.startsWith('/')) url = '/' + url;
     return `/${docLocale}${url}`;

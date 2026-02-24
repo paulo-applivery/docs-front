@@ -135,12 +135,6 @@ export async function getStaticPaths() {
 
     if (isValidSlug(doc.path)) {
       fullSlug = extractSlugFromPath(doc.path, isIndex);
-      // If a custom slug is set, replace the filename portion with it
-      if (isValidSlug(doc.slug) && !isIndex) {
-        const parts = fullSlug.split('/');
-        parts[parts.length - 1] = doc.slug.toLowerCase();
-        fullSlug = parts.join('/');
-      }
     } else if (isValidSlug(doc.slug)) {
       fullSlug = doc.slug;
     } else {
