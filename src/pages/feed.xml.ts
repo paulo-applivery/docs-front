@@ -96,15 +96,9 @@ export const GET: APIRoute = async ({ site }) => {
     ${sortedDocs.map(entry => {
       const doc = entry.data;
       const collection = doc.collection || 'docs';
-      let slug = doc.path
+      const slug = doc.path
         ? doc.path.replace(/\.mdx?$/, '').replace(/^src\/content\//, '').replace(/^content\//, '').replace(/^\/+/, '').toLowerCase()
         : (doc.slug || entry.id);
-      // If a custom slug is set, replace the filename portion with it
-      if (doc.path && doc.slug && doc.slug.trim() && doc.slug !== 'null') {
-        const parts = slug.split('/');
-        parts[parts.length - 1] = doc.slug.toLowerCase();
-        slug = parts.join('/');
-      }
       const itemUrl = `${siteUrl}/${slug}`;
       const pubDate = formatRssDate(doc.pub_date || doc.date);
       const description = doc.description || doc.tldr || '';

@@ -337,13 +337,7 @@ function localizeUrl(path: string): string {
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredDocs.map(doc => {
                 // Extract slug: remove file extension, content prefix, locale prefix, docs/ prefix
-                let docSlug = (doc.path?.replace(/\.mdx?$/, '').replace(/^src\/content\//, '').replace(/^content\//, '').replace(/^[a-z]{2}\//, '').replace(/^docs\//, '').replace(/^\/+/, '').toLowerCase()) || doc.slug?.toLowerCase() || doc.id;
-                // If a custom slug is set, replace the filename portion with it
-                if (doc.path && doc.slug && doc.slug.trim() && doc.slug !== 'null') {
-                  const parts = docSlug.split('/');
-                  parts[parts.length - 1] = doc.slug.toLowerCase();
-                  docSlug = parts.join('/');
-                }
+                const docSlug = (doc.path?.replace(/\.mdx?$/, '').replace(/^src\/content\//, '').replace(/^content\//, '').replace(/^[a-z]{2}\//, '').replace(/^docs\//, '').replace(/^\/+/, '').toLowerCase()) || doc.slug?.toLowerCase() || doc.id;
                 return (
                 <a href={localizeUrl(`/${docSlug}`)} class="card">
                   {doc.hero_image && (

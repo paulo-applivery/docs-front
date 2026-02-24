@@ -620,12 +620,6 @@ export function buildNavigationTree(documents: Document[]): NavigationItem[] {
         .replace(/^[a-z]{2}\//, "")
         .replace(/^docs\//, "")
         .toLowerCase();
-      // If a custom slug is set, replace the filename portion with it
-      if (doc.slug && doc.slug.trim() && doc.slug !== "null") {
-        const parts = href.split("/");
-        parts[parts.length - 1] = doc.slug.toLowerCase();
-        href = parts.join("/");
-      }
       href = `/${doc.locale || "en"}/${href}`;
     } else {
       href = `/${doc.collection}/${doc.slug || doc.id}`;
