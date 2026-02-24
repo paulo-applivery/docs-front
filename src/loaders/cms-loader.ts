@@ -191,92 +191,108 @@ function normalizeCmsDocument(doc: any): Record<string, any> {
   return {
     // Core fields
     title: doc.title || 'Untitled',
-    description: doc.description || undefined,
+    description: toStr(doc.description),
     content: doc.content || '',
     collection: doc.collection || 'docs',
     locale: doc.locale || 'en',
     type: doc.type === 'archive' ? 'archive' : 'article',
-    path: doc.path || undefined,
-    slug: doc.slug || undefined,
+    path: toStr(doc.path),
+    slug: toStr(doc.slug),
 
     // Navigation — coerce DB integers to proper types
     visible: doc.visible === 0 || doc.visible === false ? false : true,
     sidebar_position: toNumber(doc.sidebar_position),
     order_num: toNumber(doc.order_num),
     weight: toNumber(doc.weight),
-    item_name: doc.item_name || undefined,
-    icon: doc.icon || undefined,
-    sidebar_icon: doc.sidebar_icon || undefined,
+    item_name: toStr(doc.item_name),
+    icon: toStr(doc.icon),
+    sidebar_icon: toStr(doc.sidebar_icon),
     separator: doc.separator === 1 || doc.separator === true,
+    show_child_grid: doc.show_child_grid === 0 || doc.show_child_grid === false ? false : true,
 
     // SEO
-    seo_title: doc.seo_title || undefined,
-    canonical: doc.canonical || undefined,
+    seo_title: toStr(doc.seo_title),
+    headline: toStr(doc.headline),
+    canonical: toStr(doc.canonical),
     keywords: parseJsonField(doc.keywords),
-    hero_image: doc.hero_image || undefined,
-    image_alt: doc.image_alt || undefined,
+    target_keyword: toStr(doc.target_keyword),
+    noindex: doc.noindex === 1 || doc.noindex === true,
+    hero_image: toStr(doc.hero_image),
+    image_alt: toStr(doc.image_alt),
 
-    // Dates — keep as strings, schema will coerce
-    date: doc.date || undefined,
-    pub_date: doc.pub_date || undefined,
-    updated_date: doc.updated_date || undefined,
+    // Dates — only pass valid date strings
+    date: toDate(doc.date),
+    pub_date: toDate(doc.pub_date),
+    updated_date: toDate(doc.updated_date),
 
     // Taxonomy
-    author: doc.author || undefined,
+    author: toStr(doc.author),
+    author_url: toStr(doc.author_url),
     category: parseJsonField(doc.category),
     section: parseJsonField(doc.section),
-    translation_key: doc.translation_key || undefined,
-    audience: doc.audience || undefined,
-    difficulty: doc.difficulty || undefined,
-    platform: doc.platform || undefined,
+    translation_key: toStr(doc.translation_key),
+    audience: toStr(doc.audience),
+    difficulty: toStr(doc.difficulty),
+    platform: toStr(doc.platform),
     related: parseJsonField(doc.related),
 
     // Structured data
-    schema_type: doc.schema_type || undefined,
+    schema_type: toStr(doc.schema_type),
     faqs: parseJsonField(doc.faqs),
     howto: parseJsonField(doc.howto),
 
     // System
-    sha: doc.sha || undefined,
-    created_at: doc.created_at || undefined,
-    updated_at: doc.updated_at || undefined,
+    sha: toStr(doc.sha),
+    created_at: toStr(doc.created_at),
+    updated_at: toStr(doc.updated_at),
 
     // Extended metadata (pass through for page rendering)
-    headline: doc.headline || undefined,
-    target_keyword: doc.target_keyword || undefined,
     reading_time: toNumber(doc.reading_time),
-    tldr: doc.tldr || undefined,
-    summary: doc.summary || undefined,
+    tldr: toStr(doc.tldr),
+    summary: toStr(doc.summary),
     key_takeaways: parseJsonField(doc.key_takeaways),
-    noindex: doc.noindex === 1 || doc.noindex === true,
     featured: doc.featured === 1 || doc.featured === true,
-    show_child_grid: doc.show_child_grid === 0 || doc.show_child_grid === false ? false : true,
 
     // Open Graph
-    og_title: doc.og_title || undefined,
-    og_description: doc.og_description || undefined,
-    og_image: doc.og_image || undefined,
-
-    // Author
-    author_url: doc.author_url || undefined,
+    og_title: toStr(doc.og_title),
+    og_description: toStr(doc.og_description),
+    og_image: toStr(doc.og_image),
   };
 }
 
 /** Safely parse a JSON string field (the CMS stores arrays as JSON strings in SQLite) */
 function parseJsonField(value: any): any {
   if (value === null || value === undefined) return undefined;
-  if (Array.isArray(value)) return value;
+  if (Array.isArray(value)) return value.length > 0 ? value : undefined;
   if (typeof value === 'object') return value;
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
+      // JSON.parse("null") returns null — treat as undefined
+      if (parsed === null) return undefined;
       return parsed;
     } catch {
-      // If it's a plain string, return as-is (might be a comma-separated list)
       return undefined;
     }
   }
   return undefined;
+}
+
+/** Safely convert to string, returning undefined for null/empty/falsy values */
+function toStr(value: any): string | undefined {
+  if (value === null || value === undefined) return undefined;
+  const s = String(value).trim();
+  if (!s || s === 'null' || s === 'undefined') return undefined;
+  return s;
+}
+
+/** Safely convert to a valid date string, returning undefined for invalid dates */
+function toDate(value: any): string | undefined {
+  if (value === null || value === undefined) return undefined;
+  const s = String(value).trim();
+  if (!s || s === 'null' || s === 'undefined') return undefined;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? undefined : s;
 }
 
 /** Safely convert to number, returning undefined for non-numeric values */
