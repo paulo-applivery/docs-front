@@ -1,0 +1,66 @@
+---
+title: Gestionar Libros con MDM
+description: >-
+  Aprenda cómo implementar y administrar libros en dispositivos iOS utilizando
+  el MDM de Applivery. Implemente en dispositivos individuales o use políticas
+  para múltiples dispositivos.
+slug: managing-books
+keywords: 'MDM, Apple, iOS, libros, implementación, políticas, epub, pdf'
+type: article
+author: Applivery
+date: 2022-10-23T07:00:50.000Z
+updatedDate: 2024-10-10T22:01:59.000Z
+canonical: >-
+  https://www.applivery.com/docs/mobile-device-management/apple-mdm/books/mobile-device-management/apple-mdm/books/managing-books/
+collection: docs
+locale: en
+visible: true
+translation_key: managing-books
+schema_type: TechArticle
+language: en
+secondary_keywords: []
+prerequisites: []
+faq_items: []
+how_to_steps: []
+show_child_grid: true
+featured: false
+noindex: false
+evergreen: false
+pillar_content: false
+og_type: article
+og_template: brand-custom
+twitter_card: summary_large_image
+key_takeaways: []
+main_topics: []
+entities: []
+related_queries: []
+related_topics: []
+word_count: 345
+sources: []
+related_articles: []
+see_also: []
+translations:
+  en: src/content/en/docs/device-management/ios/managing-books.mdx
+---
+
+Tenga en cuenta que los Libros (`.epub`, `.pdf`) se gestionan de manera diferente según el dispositivo en el que se implementan. En iPhone y iPad, los libros deben implementarse a través del canal del dispositivo, lo que significa que estarán disponibles en todo el dispositivo para todos los usuarios. **Tenga en cuenta que los libros no se pueden asignar a dispositivos macOS**.
+
+## Implementación de libros en un solo dispositivo
+
+A través del [panel de control de Applivery](https://dashboard.applivery.io/), navegue a cualquiera de sus dispositivos desde **Gestión de dispositivos > Dispositivos** (1). Luego, vaya a la pestaña **Libros** (2) y haga clic en el botón \+ Asignar libro (3). Puede seleccionar un libro existente de la lista de activos o cargar uno nuevo haciendo clic en el botón Cargar nuevo activo (4). Elija el activo que desee de la lista desplegable y luego haga clic en Agregar (5).
+
+![deploy-books](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-081420-1024x651.png "deploy-books | Applivery")
+
+El libro se implementará automáticamente en su dispositivo. Puede verificar el estado de la instalación desde la lista de Libros. Puede forzar el proceso de sincronización haciendo clic en **Acción > Sincronizar política** (6).
+
+![sync-book](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-082414-1024x651.png "sync-book | Applivery")
+
+Para **eliminar libros** del dispositivo, simplemente haga clic en los tres puntos (7) al final de cada libro y elija **Desasignar** (8).
+
+![unassign-book](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-083000-1024x651.png "unassign-book | Applivery")
+
+## Implementación de libros en múltiples dispositivos a la vez usando políticas
+
+También puede administrar Libros, implementarlos en múltiples dispositivos y mantenerlos sincronizados mediante el uso de **Políticas**. Simplemente vaya a cualquiera de sus políticas desde el menú superior **Políticas** (1) y luego navegue a la opción del lado izquierdo **Libros** (2). Luego haga clic en el botón \+ Agregar libro (3).
+
+![add-book](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at

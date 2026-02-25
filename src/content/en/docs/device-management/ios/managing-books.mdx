@@ -1,0 +1,156 @@
+---
+title: Manage Books with MDM
+description: >-
+  Learn how to deploy and manage books on iOS devices using Applivery's MDM.
+  Deploy to single devices or use policies for multiple devices.
+slug: managing-books
+keywords:
+  - MDM
+  - iOS
+  - books
+  - epub
+  - pdf
+  - Applivery
+  - device management
+  - mobile device management
+type: article
+author: Applivery
+date: 2022-10-23T07:00:50.000Z
+updatedDate: 2024-10-10T22:01:59.000Z
+canonical: >-
+  https://www.applivery.com/docs/mobile-device-management/apple-mdm/books/mobile-device-management/apple-mdm/books/managing-books/
+collection: docs
+locale: en
+visible: true
+category: Mobile Device Management
+section: Apple MDM
+platform: iOS
+audience: administrators
+difficulty: intermediate
+schema_type: TechArticle
+language: en
+domain: device-management
+capability: content-management
+headline: Managing iOS Books Deployment with Applivery MDM
+target_keyword: iOS book management MDM
+secondary_keywords:
+  - epub deployment
+  - pdf deployment
+  - Applivery MDM
+intent: informational
+reading_time: 5
+prerequisites:
+  - Applivery account
+  - Enrolled iOS devices
+  - Basic understanding of MDM policies
+faq_items: []
+how_to_steps: []
+show_child_grid: true
+featured: false
+noindex: false
+evergreen: false
+pillar_content: false
+og_title: Managing iOS Books with Applivery MDM
+og_description: >-
+  Learn how to easily deploy and manage books on iOS devices using Applivery's
+  mobile device management (MDM) platform.
+og_type: article
+og_template: gradient-modern
+twitter_card: summary_large_image
+summary: >-
+  This guide explains how to deploy and manage books on iOS devices using
+  Applivery's MDM platform. It covers deploying books to individual devices and
+  using policies to manage books on multiple devices simultaneously. Note that
+  book management is only available for iOS devices and not macOS.
+tldr: >-
+  Deploy and manage books on iOS devices using Applivery MDM, either
+  individually or through policies.
+answer_target: >-
+  You can deploy books to individual iOS devices through the device management
+  interface in Applivery MDM. Alternatively, you can use MDM policies to deploy
+  and manage books on multiple iOS devices simultaneously. Books are managed as
+  assets within the Applivery platform and can be unassigned to remove them from
+  devices.
+key_takeaways:
+  - >-
+    Books can be deployed to individual iOS devices through the device
+    management interface.
+  - >-
+    MDM policies allow for deploying and managing books on multiple iOS devices
+    simultaneously.
+  - Books are managed as assets within the Applivery platform.
+  - Books cannot be assigned to macOS devices.
+  - You can unassign books from devices to remove them.
+main_topics:
+  - iOS book deployment
+  - MDM policies for books
+  - Applivery MDM
+  - Managing book assets
+entities:
+  - Applivery
+  - iOS
+  - MDM
+  - epub
+  - pdf
+related_queries:
+  - How to deploy books to iOS devices with MDM?
+  - How to manage books on iOS devices with Applivery?
+  - How to deploy epub files to iOS devices?
+  - How to deploy pdf files to iOS devices?
+  - How to remove books from iOS devices using MDM?
+  - Can I deploy books to macOS devices using Applivery MDM?
+  - How to use policies to deploy books to multiple iOS devices?
+related_topics:
+  - ios-device-management
+  - mobile-content-management
+  - applivery-mdm
+content_scope: overview
+confidence_level: well-established
+limitations: >-
+  This guide focuses solely on managing books on iOS devices using Applivery
+  MDM. It does not cover other MDM functionalities or book management on other
+  platforms.
+update_frequency: occasionally
+word_count: 440
+sources: []
+organization: Applivery
+related_articles: []
+see_also: []
+translations: {}
+---
+
+Note that Books (`.epub`, `.pdf`) are managed differently based on the device they are deployed on. On iPhone and iPad, books must be deployed through the device channel, meaning they will be available throughout the entire device for all users. **Please note that books cannot be assigned to macOS devices**.
+
+## Deploying books to a single device
+
+Through the [Applivery dashboard](https://dashboard.applivery.io/), navigate to any of your devices from **Device Management > Devices** (1). Then go to the **Books** (2) tab and click the \+ Assign Book (3) button. You can either select an existing book from the list of assets or upload a new one by clicking the Upload new asset (4) button. Choose the asset that you want from the dropdown list and then click Add (5).
+
+![deploy-books](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-081420-1024x651.png "deploy-books | Applivery")
+
+The book will be automatically deployed to your device. You can check the installation status from the list of Books. You can force the Sync process by clicking **Action > Sync policy** (6).
+
+![sync-book](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-082414-1024x651.png "sync-book | Applivery")
+
+To **remove books** from the device, simply click the three dots (7) at the end of each book and choose **Unassign** (8).
+
+![unassign-book](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-083000-1024x651.png "unassign-book | Applivery")
+
+## Deploying books to multiple devices at once using policies
+
+You can also manage Books, deploy them to multiple devices, and maintain them synced by using **Policies**. Just go to any of your policies from the **Policies** (1) top menu and then navigate to the **Books** (2) left-side option. Then click the \+ Add book (3) button.
+
+![add-book](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-083544-1024x651.png "add-book | Applivery")
+
+As mentioned before, you can either select an existing book from the list of assets or upload a new one by clicking Upload new asset (4) button. Click the button and select a `.pdf` or `.epub` file from your files.
+
+![upload-new-asset](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-084115-1024x651.png "upload-new-asset | Applivery")
+
+Now just type the **Title Name** (5) of the book and click the Add (6) button to upload it. Last, don’t forget to click Save changes to save and deploy these changes to all the devices associated with that policy!
+
+![upload-book-to-policy](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-084345-1024x651.png "upload-book-to-policy | Applivery")
+
+## Managing your Books
+
+You can see, manage, and download the entire list of books that you have uploaded by going to **Device Management (1) > Assets (2) > Books (3)**.
+
+![managing-books](https://www.applivery.com/wp-content/uploads/2022/10/Screenshot-2024-02-15-at-085124-1024x651.png "managing-books | Applivery")
