@@ -61,6 +61,9 @@ interface Props {
   /** Override sidebar documents (used by SSR pages that fetch from CMS API) */
   sidebarDocuments?: Document[];
 
+  /** Pre-fetched settings (used by SSR pages to avoid redundant getAllSettings call) */
+  settings?: any;
+
   // i18n
   locale?: Locale;
   availableTranslations?: Locale[];
@@ -93,6 +96,7 @@ const {
   headings = [],
   currentPath,
   sidebarDocuments: propSidebarDocuments,
+  settings: propSettings,
   locale: propLocale,
   availableTranslations = [],
   translationSlugs = {},
@@ -116,9 +120,9 @@ let settings: any = null;
 
 try {
   if (propSidebarDocuments && propSidebarDocuments.length > 0) {
-    // SSR pages pass their own sidebar documents (fetched from CMS API)
+    // SSR pages pass their own sidebar documents and settings (pre-fetched)
     documents = propSidebarDocuments;
-    settings = (await getAllSettings()) || null;
+    settings = propSettings || (await getAllSettings()) || null;
   } else if (collection === 'api') {
     // For static API pages, build sidebar from Astro content collection
     const allDocs = await getCollection('docs');
@@ -388,12 +392,16 @@ if (author) {
   };
 }
 
-// Add image if available
-if (heroImage || ogImage) {
+// Add image if available — guard against empty / "null" placeholder values
+const resolvedHeroImage = heroImage && heroImage !== 'null' && heroImage !== 'undefined' && heroImage.trim() ? heroImage : '';
+const resolvedOgImage = ogImage && ogImage !== 'null' && ogImage !== 'undefined' && ogImage.trim() ? ogImage : '';
+const schemaImage = resolvedHeroImage || resolvedOgImage;
+if (schemaImage) {
+  const cleanAlt = (imageAlt && imageAlt !== 'null' && imageAlt !== 'undefined') ? imageAlt : '';
   articleSchema.image = {
     "@type": "ImageObject",
-    url: new URL(heroImage || ogImage || "", siteUrl).href,
-    ...(imageAlt && { description: imageAlt }),
+    url: new URL(schemaImage, siteUrl).href,
+    ...(cleanAlt && { description: cleanAlt }),
   };
 }
 

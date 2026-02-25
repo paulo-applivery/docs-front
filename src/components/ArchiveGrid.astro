@@ -151,6 +151,12 @@ function getCardImage(item: ArchiveItem): string | undefined {
   return trimmed;
 }
 
+function getCardAlt(item: ArchiveItem, fallback: string): string {
+  const alt = item.image_alt;
+  if (!alt || alt === 'null' || alt === 'undefined') return fallback;
+  return alt;
+}
+
 
 // JSON-LD: CollectionPage schema
 const collectionPageSchema = {
@@ -355,7 +361,7 @@ const keyTopics = items.map(i => getCardTitle(i)).slice(0, 10).join(', ');
                 {cardImage && (
                   <img
                     src={cardImage}
-                    alt={item.image_alt || cardTitle}
+                    alt={getCardAlt(item, cardTitle)}
                     loading="lazy"
                     decoding="async"
                     itemprop="image"
@@ -436,7 +442,7 @@ const keyTopics = items.map(i => getCardTitle(i)).slice(0, 10).join(', ');
               {cardImage && (
                 <img
                   src={cardImage}
-                  alt={item.image_alt || cardTitle}
+                  alt={getCardAlt(item, cardTitle)}
                   loading="lazy"
                   decoding="async"
                   itemprop="image"

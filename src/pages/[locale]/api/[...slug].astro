@@ -53,8 +53,16 @@ let fetchError: string | null = null
 
 try {
   const [docRes, navRes, settingsData] = await Promise.all([
-    fetch(`${cmsUrl}/api/documents/api-doc-by-slug?slug=${encodeURIComponent(docSlug)}&locale=${locale}`, { headers }),
-    fetch(`${cmsUrl}/api/documents/api-navigation?locale=${locale}`, { headers }),
+    fetch(`${cmsUrl}/api/documents/api-doc-by-slug?slug=${encodeURIComponent(docSlug)}&locale=${locale}`, {
+      headers,
+      // @ts-ignore — Cloudflare Workers cf property
+      cf: { cacheTtl: 60, cacheEverything: true },
+    }),
+    fetch(`${cmsUrl}/api/documents/api-navigation?locale=${locale}&slim=1`, {
+      headers,
+      // @ts-ignore — Cloudflare Workers cf property
+      cf: { cacheTtl: 300, cacheEverything: true },
+    }),
     getAllSettings(),
   ])
 
@@ -210,6 +218,14 @@ if (processedContent) {
   headings = rawContent ? extractHeadings(rawContent.replace(/^---\n[\s\S]*?\n---\n?/, '')) : []
 }
 
+// Graceful fallback: if doc exists with API metadata but no content, show basic endpoint info
+if (doc && !processedContent && !isIndex && doc._api) {
+  const m = doc._api.method || ''
+  const p = doc._api.path || ''
+  const desc = doc.description || ''
+  processedContent = `<div class="api-basic-info"><p class="api-basic-endpoint"><code>${m} ${p}</code></p>${desc ? `<p>${desc}</p>` : ''}<p class="text-sm" style="color:var(--color-text-muted);margin-top:1rem;">Full documentation content is being generated. Please check back shortly.</p></div>`
+}
+
 // Build JSON-LD for API reference pages
 const siteUrl = Astro.site?.href || Astro.url.origin
 const pageUrl = new URL(Astro.url.pathname, siteUrl).href
@@ -319,6 +335,7 @@ const category = Array.isArray(fullDocument.category) ? fullDocument.category[0]
   headings={headings}
   currentPath={Astro.url.pathname}
   sidebarDocuments={sidebarDocuments}
+  settings={settings}
   locale={locale as Locale}
 >
   {/* API Reference JSON-LD for SEO / LLM indexing */}
