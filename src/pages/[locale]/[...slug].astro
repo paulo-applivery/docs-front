@@ -101,16 +101,16 @@ export async function getStaticPaths() {
 
   const validDocs = allDocs.filter((entry) => {
     const doc = entry.data;
+
+    // API docs are now SSR — skip them in the static build
+    if (doc.collection === 'api') return false;
+
     if (!isValidSlug(doc.slug) && !isValidSlug(doc.path)) return false;
     if (doc.type !== 'archive') return true;
 
     const folderPath = getIndexFolderPath(doc);
     if (!folderPath) return false;
     const docLocale = resolveDocLocale(doc);
-
-    // API collection archives represent user-created folders in the CMS —
-    // always generate their routes even if empty (entities may be added later).
-    if (doc.collection === 'api') return true;
 
     const hasChildren = allDocs.some((other) => {
       const d = other.data;

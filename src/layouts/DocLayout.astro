@@ -58,6 +58,9 @@ interface Props {
   // Navigation
   currentPath?: string;
 
+  /** Override sidebar documents (used by SSR pages that fetch from CMS API) */
+  sidebarDocuments?: Document[];
+
   // i18n
   locale?: Locale;
   availableTranslations?: Locale[];
@@ -89,6 +92,7 @@ const {
   imageAlt,
   headings = [],
   currentPath,
+  sidebarDocuments: propSidebarDocuments,
   locale: propLocale,
   availableTranslations = [],
   translationSlugs = {},
@@ -111,9 +115,12 @@ let documents: Document[] = [];
 let settings: any = null;
 
 try {
-  if (collection === 'api') {
-    // For API pages, build sidebar from Astro content collection (api_entities)
-    // since API docs aren't in the regular documents table
+  if (propSidebarDocuments && propSidebarDocuments.length > 0) {
+    // SSR pages pass their own sidebar documents (fetched from CMS API)
+    documents = propSidebarDocuments;
+    settings = (await getAllSettings()) || null;
+  } else if (collection === 'api') {
+    // For static API pages, build sidebar from Astro content collection
     const allDocs = await getCollection('docs');
     const apiDocs = allDocs.filter(d => d.data.collection === 'api' && d.data.visible !== false);
     documents = apiDocs.map(d => ({
@@ -832,7 +839,7 @@ const faqSchema = isFaq
   /* Content container - wraps content + TOC with border */
   .content-container {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 2rem;
     flex: 1;
     min-width: 0;
@@ -844,7 +851,7 @@ const faqSchema = isFaq
     overflow: hidden;
     transition: flex 0.3s ease;
     position: relative;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   /* Bottom gradient fade */

@@ -63,71 +63,14 @@ export function cmsLoader(config: CmsLoaderConfig): Loader {
         throw error;
       }
 
-      // ── Fetch API reference docs ─────────────────────────────────────
-      let apiDocuments: any[] = [];
-      try {
-        const apiUrl = `${config.cmsUrl}/api/documents/api-docs?limit=10000`;
-        const apiRes = await fetch(apiUrl, { headers });
-
-        if (apiRes.ok) {
-          const apiData = await apiRes.json();
-          apiDocuments = apiData.documents || [];
-          logger.info(
-            `Received ${apiDocuments.length} API docs (total: ${apiData.total})`,
-          );
-        } else {
-          // Non-fatal: API docs endpoint might not exist yet
-          logger.warn(`API docs endpoint returned ${apiRes.status} — skipping`);
-        }
-      } catch (error) {
-        logger.warn(`Failed to fetch API docs (non-fatal): ${error}`);
-      }
-
-      // Always ensure the /en/api/ index page exists even if the endpoint
-      // isn't available yet — so the route is always reachable.
-      //
-      // When the CMS api-docs endpoint returns real data it includes a proper
-      // archive-type index with children.  The fallback below uses type
-      // 'article' so it passes through getStaticPaths() without needing
-      // children (archive pages are filtered out when they have none).
-      const hasApiIndex = apiDocuments.some(
-        (d: any) => d.id === 'api-index' || d.slug === 'api',
-      );
-      const hasApiChildren = apiDocuments.some(
-        (d: any) => d.id !== 'api-index' && d.slug !== 'api',
-      );
-      if (!hasApiIndex) {
-        const now = new Date().toISOString();
-        apiDocuments.push({
-          id: 'api-index',
-          title: 'API Reference',
-          description:
-            'Complete API reference documentation. Browse endpoints organized by resource.',
-          content: '',
-          collection: 'api',
-          locale: 'en',
-          // Use 'archive' only when there are child API docs to render;
-          // otherwise 'article' so the page is not filtered out by
-          // the hasChildren check in getStaticPaths().
-          type: hasApiChildren ? 'archive' : 'article',
-          path: 'content/en/docs/api/index.md',
-          slug: 'api',
-          visible: true,
-          sidebar_position: 0,
-          item_name: 'API Reference',
-          sidebar_icon: 'code',
-          seo_title: 'API Reference | Documentation',
-          schema_type: 'WebAPI',
-          show_child_grid: hasApiChildren,
-          date: now,
-          pub_date: now,
-          created_at: now,
-          updated_at: now,
-        });
-      }
+      // ── API docs are now SSR (not static) ──────────────────────────
+      // API reference docs are served via server-side rendering at
+      // /[locale]/api/[...slug].astro. They fetch from the CMS on each
+      // request (with CDN caching). No need to load them at build time.
+      logger.info('API docs: skipped (served via SSR)');
 
       // ── Merge all documents into store ───────────────────────────────
-      const allDocuments = [...documents, ...apiDocuments];
+      const allDocuments = [...documents];
       const newIds = new Set<string>();
 
       for (const doc of allDocuments) {

@@ -57,6 +57,9 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL || 'https://docs.applivery.com' }}
           NODE_OPTIONS: '--max-old-space-size=4096'
 
+      # NOTE: SSR pages (API docs) need runtime env vars configured in
+      # Cloudflare Pages dashboard: Settings → Environment Variables → Production
+      # Required: CMS_URL, CMS_API_KEY
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
