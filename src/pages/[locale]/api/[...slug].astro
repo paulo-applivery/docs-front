@@ -86,13 +86,17 @@ if (!doc && !fetchError) {
 Astro.response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 
 // Build documents array for the sidebar from navigation data
+// IMPORTANT: paths MUST keep the "api/" prefix so the Sidebar generates
+// correct hrefs like /en/api/android instead of /en/android
 const sidebarDocuments: Document[] = []
 
-function flattenNavToDocuments(items: any[], parentPath = 'content/en/docs') {
+function flattenNavToDocuments(items: any[]) {
   if (!items) return
   for (const item of items) {
+    // item.slug already includes the api/ prefix (e.g. "api/android", "api/android/get-devices")
+    const itemSlug = item.slug || ''
+
     if (item.type === 'folder') {
-      // Create an archive/index document for the folder
       sidebarDocuments.push({
         id: item.id,
         title: item.title,
@@ -101,8 +105,8 @@ function flattenNavToDocuments(items: any[], parentPath = 'content/en/docs') {
         collection: 'api',
         locale: locale as string,
         type: 'archive',
-        path: `${parentPath}/${item.slug?.replace(/^api\//, '') || ''}/index.md`,
-        slug: item.slug,
+        path: `content/${locale}/docs/${itemSlug}/index.md`,
+        slug: itemSlug,
         visible: true,
         sidebar_position: item.order,
         item_name: item.title,
@@ -111,12 +115,11 @@ function flattenNavToDocuments(items: any[], parentPath = 'content/en/docs') {
       } as Document)
 
       if (item.children) {
-        flattenNavToDocuments(item.children, `${parentPath}/${item.slug?.replace(/^api\//, '') || ''}`)
+        flattenNavToDocuments(item.children)
       }
     } else if (item.type === 'endpoint') {
-      // Create an article document for the endpoint
-      const leafSlug = item.slug?.split('/').pop() || ''
-      const parentFolder = item.slug?.split('/').slice(0, -1).join('/').replace(/^api\//, '') || ''
+      const leafSlug = itemSlug.split('/').pop() || ''
+      const parentFolder = itemSlug.split('/').slice(0, -1).join('/')
       sidebarDocuments.push({
         id: item.id,
         title: item.title,
@@ -126,7 +129,7 @@ function flattenNavToDocuments(items: any[], parentPath = 'content/en/docs') {
         locale: locale as string,
         type: 'article',
         path: `content/${locale}/docs/${parentFolder}/${leafSlug}.md`,
-        slug: item.slug,
+        slug: itemSlug,
         visible: true,
         sidebar_position: item.order,
         item_name: item.title,
