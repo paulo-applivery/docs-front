@@ -145,10 +145,16 @@ export const iconMap = {
   // Magic & Effects
   magicStick: 'solar:magic-stick-3-linear',
 
-  // Operating Systems & Brands
-  apple: 'solar:iphone-linear',
-  android: 'solar:smartphone-linear',
-  windows: 'solar:window-frame-linear',
+  // Operating Systems & Brands (custom Hugeicons stroke-rounded SVGs)
+  appleLogo: 'custom:apple-logo',
+  appleFinder: 'custom:apple-finder',
+  windowsLogo: 'custom:windows-logo',
+  androidRobot: 'custom:android-robot',
+  // Aliases pointing to the custom brand icons
+  apple: 'custom:apple-logo',
+  android: 'custom:android-robot',
+  windows: 'custom:windows-logo',
+  macos: 'custom:apple-finder',
   chrome: 'solar:magnifer-linear',
   github: 'solar:code-square-linear',
   gitlab: 'solar:code-square-linear',
@@ -308,6 +314,10 @@ export const iconMap = {
   boxes: 'solar:box-linear',
 
   // Kebab-case mappings (synced from CMS)
+  'apple-logo': 'custom:apple-logo',
+  'apple-finder': 'custom:apple-finder',
+  'windows-logo': 'custom:windows-logo',
+  'android-robot': 'custom:android-robot',
   'smartphone-2': 'solar:smartphone-2-linear',
   'smartphone-rotate': 'solar:smartphone-rotate-2-linear',
   'smartphone-update': 'solar:smartphone-update-linear',
