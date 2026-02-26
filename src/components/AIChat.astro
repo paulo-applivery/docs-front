@@ -808,12 +808,14 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     gap: 1rem;
   }
 
-  .ai-welcome {
+  /* Welcome screen & suggestions use :global because they are
+     re-created dynamically by clearConversation() via innerHTML */
+  :global(.ai-welcome) {
     text-align: center;
     padding: 1.5rem 1rem;
   }
 
-  .ai-welcome-icon {
+  :global(.ai-welcome-icon) {
     width: 3.5rem;
     height: 3.5rem;
     margin: 0 auto 1rem;
@@ -823,27 +825,26 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     color: var(--color-primary);
   }
 
-  .ai-welcome-icon svg {
+  :global(.ai-welcome-icon svg) {
     width: 100%;
     height: 100%;
   }
 
-  .ai-welcome h3 {
+  :global(.ai-welcome h3) {
     font-size: 1rem;
     font-weight: 600;
     color: var(--color-text-primary);
     margin: 0 0 0.5rem;
   }
 
-  .ai-welcome p {
+  :global(.ai-welcome p) {
     font-size: 0.8125rem;
     color: var(--color-text-secondary);
     line-height: 1.5;
     margin: 0;
   }
 
-  /* ai-suggestions container is in static HTML, so scoped styles work */
-  .ai-suggestions {
+  :global(.ai-suggestions) {
     display: flex;
     flex-wrap: wrap;
     gap: 0.375rem;
