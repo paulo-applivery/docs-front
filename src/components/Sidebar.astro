@@ -550,12 +550,50 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
 
 // CMS URL for client-side navigation API calls
 const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
+
+// Collect only the icons actually used by CMS data at build time
+const usedIcons = new Set<string>([
+  // Structural icons always needed by the sidebar
+  'folder', 'folderOpen', 'document', 'chevronDown',
+]);
+
+// Walk sideMenu items recursively to collect icons
+function collectMenuIcons(items: SideMenuItem[]) {
+  for (const item of items) {
+    if (item.icon) usedIcons.add(getIconName(item.icon));
+    if (item.children) collectMenuIcons(item.children);
+  }
+}
+if (sideMenu?.items) collectMenuIcons(sideMenu.items);
+
+// Collect icons from products
+for (const p of products) {
+  if (p.icon) usedIcons.add(getIconName(p.icon));
+}
+
+// Collect icons from navigation groups
+function collectNavIcons(groups: NavGroup[]) {
+  for (const g of groups) {
+    if (g.icon) usedIcons.add(getIconName(g.icon));
+    for (const item of g.items) {
+      if (item.icon) usedIcons.add(getIconName(item.icon));
+    }
+    if (g.subgroups) collectNavIcons(g.subgroups);
+  }
+}
+collectNavIcons(navigation);
+
+// Build filtered iconMap with only the used icons
+const usedIconMap = Object.fromEntries(
+  Object.entries(iconMap).filter(([k]) => usedIcons.has(k))
+);
 ---
 
 <aside
   class="sidebar"
   data-cms-url={cmsUrl}
   data-icon-name-map={JSON.stringify(iconAliases)}
+  data-icon-map={JSON.stringify(usedIconMap)}
 >
   <!-- Logo / Site Name -->
   <div class="sidebar-header">
@@ -1009,21 +1047,20 @@ const cmsUrl = import.meta.env.PUBLIC_CMS_URL || import.meta.env.CMS_URL || '';
 </aside>
 
 <script lang="ts">
-  import { iconMap } from '../lib/icons';
-
   const sidebarElement = document.querySelector('.sidebar');
   const sidebarDataset = sidebarElement?.dataset;
-  // iconAliases: only non-trivial mappings (cog → settings, iphone → smartphone, etc.)
+  // iconNameMap now only contains aliases (non-trivial mappings like cog → settings)
   const iconAliases = sidebarDataset?.iconNameMap
     ? new Map(Object.entries(JSON.parse(sidebarDataset.iconNameMap)))
     : new Map();
-  // iconMap imported as a JS module (bundled & cached by Vite, not serialized into HTML)
-  const iconifyMap = new Map(Object.entries(iconMap));
+  const iconifyMap = sidebarDataset?.iconMap
+    ? new Map(Object.entries(JSON.parse(sidebarDataset.iconMap)))
+    : new Map();
   const iconSvgCache = new Map();
   const iconSvgRequests = new Map();
 
   // Convert kebab-case to camelCase: 'folder-open' → 'folderOpen'
-  function kebabToCamel(str: string): string {
+  function kebabToCamel(str) {
     return str.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
   }
 
