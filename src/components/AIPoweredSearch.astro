@@ -1133,4 +1133,80 @@ const CMS_API_KEY = import.meta.env.CMS_API_KEY || '';
     background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.12);
     border-color: rgba(var(--color-primary-rgb, 99, 102, 241), 0.2);
   }
+
+  /* ---- Mobile adjustments ---- */
+  @media (max-width: 640px) {
+    .ai-powered-search-container {
+      padding: 0 16px;
+    }
+
+    #search-results-ai {
+      max-width: 100%;
+      overflow-x: hidden;
+      word-break: break-word;
+    }
+
+    .search-source-card {
+      gap: 0.75rem;
+      padding: 0.75rem;
+    }
+
+    .search-source-card-title {
+      font-size: 0.8125rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-source-card-snippet {
+      font-size: 0.75rem;
+    }
+
+    .search-source-card-icon {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .search-source-card-icon svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .search-answer-card {
+      padding: 1rem;
+      margin: 0;
+    }
+
+    .search-answer-body {
+      font-size: 0.875rem;
+      overflow-wrap: break-word;
+    }
+
+    .search-answer-body code {
+      word-break: break-all;
+    }
+
+    .search-answer-source-pill {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .search-answer-source-title {
+      max-width: 100%;
+    }
+
+    .search-answer-sources-list {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #search-scope-tabs {
+      max-width: 100%;
+    }
+
+    #search-bar-container {
+      max-width: 100%;
+    }
+  }
 </style>
