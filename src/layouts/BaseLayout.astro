@@ -106,12 +106,13 @@ const metaCanonical = canonical || Astro.url.href;
 const CMS_URL = import.meta.env.CMS_URL || '';
 let metaOgImage = ogImage || extendedSeo?.defaultOgImage || '';
 if (!metaOgImage && CMS_URL && title) {
-  // Build dynamic OG image using CMS generator (template/colors auto-loaded from DB)
+  // Build dynamic OG image using CMS generator with brand-custom template
   const ogParams = new URLSearchParams();
   ogParams.set('title', title);
   if (metaOgDescription) ogParams.set('description', metaOgDescription);
   if (category || section) ogParams.set('category', (category || section || '').toUpperCase());
   if (siteName) ogParams.set('siteName', siteName);
+  ogParams.set('template', 'brand-custom');
   metaOgImage = `${CMS_URL}/api/og/generate?${ogParams.toString()}`;
 } else if (!metaOgImage) {
   metaOgImage = '/og-image.png';
