@@ -240,6 +240,28 @@ function formatTitle(segment: string): string {
 }
 
 /**
+ * Infer a platform-specific icon name from a folder key.
+ * Falls back to undefined (caller uses 'folder' default).
+ */
+function inferFolderIcon(folderKey: string): string | undefined {
+  const map: Record<string, string> = {
+    'android': 'android-robot',
+    'ios': 'apple-logo',
+    'ipados': 'apple-logo',
+    'macos': 'apple-finder',
+    'tvos': 'apple-logo',
+    'watchos': 'apple-logo',
+    'visionos': 'apple-logo',
+    'windows': 'windows-logo',
+    'oem-configs': 'settings',
+    'oem': 'settings',
+    'workspace': 'building',
+    'workspaces': 'building',
+  };
+  return map[folderKey.toLowerCase()];
+}
+
+/**
  * Build hierarchical navigation from document paths
  * Groups by folder structure for a proper sidebar tree
  */
@@ -418,21 +440,27 @@ function buildNavigation(docs: Document[]): NavGroup[] {
 
   // Convert tree to NavGroup array with proper nesting, sorted by order
   function treeToGroups(tree: Record<string, TreeNode>): NavGroup[] {
-    return Object.values(tree)
-      .sort((a, b) => {
+    return Object.entries(tree)
+      .sort(([, a], [, b]) => {
         const orderA = a.order ?? 999;
         const orderB = b.order ?? 999;
         if (orderA !== orderB) return orderA - orderB;
         return a.title.localeCompare(b.title);
       })
-      .map(node => ({
-        title: node.title,
-        icon: node.icon,
-        href: node.href,
-        active: node.active,
-        items: node.items,
-        subgroups: Object.keys(node.children).length > 0 ? treeToGroups(node.children) : undefined,
-      }));
+      .map(([key, node]) => {
+        // Prefer platform-specific inferred icons over generic folder icons from CMS
+        const isGenericFolder = !node.icon ||
+          ['folder', 'folder-open', 'folder-tree', 'folder-plus'].includes(node.icon.toLowerCase());
+        const inferred = inferFolderIcon(key);
+        return {
+          title: node.title,
+          icon: isGenericFolder && inferred ? inferred : node.icon,
+          href: node.href,
+          active: node.active,
+          items: node.items,
+          subgroups: Object.keys(node.children).length > 0 ? treeToGroups(node.children) : undefined,
+        };
+      });
   }
 
   return treeToGroups(root);
@@ -1085,39 +1113,23 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
   <nav class:list={['sidebar-content', 'scrollbar-on-hover', { 'has-products': hasProducts, 'has-tabs': hasTabs }]}>
     {navigation.length > 0 ? (
       navigation.map((group) => {
-        const isExpanded = isGroupActive(group, currentPath);
-
         return (
-          <div class="sidebar-nav-group" data-nav-group>
-            <div
-              class:list={['sidebar-nav-group-title', { active: group.href && (isPathActive(group.href, currentPath) || group.active) }]}
-              data-nav-toggle
-              aria-expanded={isExpanded ? 'true' : 'false'}
-            >
+          <div class="sidebar-nav-group sidebar-section-header" data-nav-group data-section-header>
+            {/* Section header — always visible, non-collapsible */}
+            <div class="sidebar-nav-section-label">
               {group.href ? (
-                <a href={group.href} class="nav-toggle-link sidebar-nav-group-link">
-                  <span class="group-title-content">
-                    <Fragment set:html={iconSvg(getIconName(group.icon || 'folder'), 'group-title-icon')} />
-                    <span class="truncate">{group.title}</span>
-                  </span>
+                <a href={group.href} class="nav-section-link">
+                  <Fragment set:html={iconSvg(getIconName(group.icon || 'code'), 'section-label-icon')} />
+                  <span class="truncate">{group.title}</span>
                 </a>
               ) : (
-                <span class="nav-toggle-link">
-                  <span class="group-title-content">
-                    <Fragment set:html={iconSvg(getIconName(group.icon || 'folder'), 'group-title-icon')} />
-                    <span class="truncate">{group.title}</span>
-                  </span>
+                <span class="nav-section-link">
+                  <Fragment set:html={iconSvg(getIconName(group.icon || 'code'), 'section-label-icon')} />
+                  <span class="truncate">{group.title}</span>
                 </span>
               )}
-              <button type="button" class="nav-chevron-btn" data-nav-chevron aria-label="Toggle expand">
-                <Fragment set:html={iconSvg('chevronDown', 'nav-chevron', isExpanded ? 'transform: rotate(180deg)' : undefined)} />
-              </button>
             </div>
-            <div
-              class="nav-group-content"
-              data-nav-content
-              style={isExpanded ? '' : 'display: none;'}
-            >
+            <div class="nav-group-content" data-nav-content>
               {/* Direct items in this group */}
               {group.items.length > 0 && (
                 <ul>
@@ -1424,25 +1436,14 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
       });
     }
 
-    // --- Sidebar expand state persistence ---
-    const EXPAND_KEY = 'sidebar_expanded';
-    function getExpandedSet() {
-      try {
-        return new Set<string>(JSON.parse(sessionStorage.getItem(EXPAND_KEY) || '[]'));
-      } catch { return new Set<string>(); }
-    }
-    function saveExpandedSet(set: Set<string>) {
-      sessionStorage.setItem(EXPAND_KEY, JSON.stringify([...set]));
-    }
-    function getToggleKey(toggle: Element) {
-      const link = toggle.querySelector('a');
-      return link?.getAttribute('href') || toggle.textContent?.trim() || '';
-    }
-
     // --- Navigation toggle (for all server-rendered nav groups) ---
-    const expandedSet = getExpandedSet();
+    // No sessionStorage persistence: on page change, only the current path's groups are expanded
+    // (server-rendered via isGroupActive). Users can still toggle manually within a page.
     const groups = document.querySelectorAll('[data-nav-group]');
     groups.forEach(group => {
+      // Skip non-collapsible section headers (e.g. API REFERENCE)
+      if (group.hasAttribute('data-section-header')) return;
+
       const toggle = group.querySelector('[data-nav-toggle]');
       const content = group.querySelector('[data-nav-content]');
       const chevronBtn = toggle?.querySelector('[data-nav-chevron]');
@@ -1454,17 +1455,6 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
       const t = toggle as HTMLElement;
       const c = content as HTMLElement;
       const chev = chevron as HTMLElement | null;
-      const key = getToggleKey(t);
-
-      // Restore persisted expand state
-      if (key && expandedSet.has(key)) {
-        const serverExpanded = t.getAttribute('aria-expanded') === 'true';
-        if (!serverExpanded) {
-          t.setAttribute('aria-expanded', 'true');
-          if (chev) chev.style.transform = 'rotate(180deg)';
-          c.style.display = 'block';
-        }
-      }
 
       function doToggle() {
         const isExpanded = t.getAttribute('aria-expanded') === 'true';
@@ -1472,12 +1462,6 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
         t.setAttribute('aria-expanded', nowExpanded.toString());
         if (chev) chev.style.transform = nowExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
         c.style.display = isExpanded ? 'none' : 'block';
-
-        // Persist state
-        const current = getExpandedSet();
-        if (nowExpanded) current.add(key);
-        else current.delete(key);
-        saveExpandedSet(current);
       }
 
       // Top-level folders: chevron button toggles expand/collapse
@@ -1760,6 +1744,41 @@ const effectiveTranslations: Locale[] = availableTranslations.length > 0
 
   .sidebar-nav-group {
     margin-bottom: 0.125rem;
+  }
+
+  /* Section header — non-collapsible label (e.g. API REFERENCE) */
+  .sidebar-section-header {
+    margin-bottom: 0;
+  }
+
+  .sidebar-nav-section-label {
+    display: flex;
+    align-items: center;
+    padding: 0.625rem 0.75rem 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-nav-section-label .nav-section-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .sidebar-nav-section-label a.nav-section-link:hover {
+    color: var(--color-text-secondary);
+  }
+
+  .section-label-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    opacity: 0.6;
   }
 
   .sidebar-nav-group-title {
