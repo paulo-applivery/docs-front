@@ -73,8 +73,9 @@ function iconSvg(name: IconName, className: string, style?: string): string {
 
   if (!body) return '';
 
-  const styleAttr = style ? ` style="${style}"` : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 ${width} ${height}" class="${className}" aria-hidden="true"${styleAttr}>${body}</svg>`;
+  const baseStyle = 'min-width: 12px; min-height: 12px';
+  const fullStyle = style ? `${baseStyle}; ${style}` : baseStyle;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 ${width} ${height}" class="${className}" aria-hidden="true" style="${fullStyle}">${body}</svg>`;
 }
 
 interface Props {
