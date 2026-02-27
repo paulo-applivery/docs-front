@@ -94,8 +94,9 @@ function claudeCodeConfig(): string {
 }
 
 // Remote MCP server URL (for Claude.ai connectors)
-const cmsBase = config.cmsUrl.replace(/\/+$/, '');
-const mcpRemoteUrl = mcpSettings?.remoteUrl || `${cmsBase}/mcp`;
+// Derives from the front-end site URL (where the Cloudflare Pages Function runs)
+const siteOrigin = (Astro.site?.origin || import.meta.env.SITE_URL || 'https://docs.applivery.com').replace(/\/+$/, '');
+const mcpRemoteUrl = mcpSettings?.remoteUrl || `${siteOrigin}/mcp`;
 
 const configMap: Record<string, string> = {
   cursor: cursorConfig(),

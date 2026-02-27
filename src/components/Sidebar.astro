@@ -287,6 +287,7 @@ function buildNavigation(docs: Document[]): NavGroup[] {
     href?: string;
     active?: boolean;
     order?: number;
+    cmsIconSet?: boolean; // true when CMS folder settings exist (even if icon is empty)
   }
 
   const root: Record<string, TreeNode> = {};
@@ -442,6 +443,56 @@ function buildNavigation(docs: Document[]): NavGroup[] {
   }
   applyIndexDocs(root, '');
 
+  // Normalize ALL CAPS titles from CMS documents to proper Title Case.
+  // Legacy data often stored titles in uppercase (e.g. "GETTING STARTED", "IOS & IPADOS")
+  // because the old CSS used text-transform:uppercase. Now we display as-is, so normalize.
+  const SPECIAL_TITLE_MAP: Record<string, string> = {
+    'ios': 'iOS',
+    'ipados': 'iPadOS',
+    'ios & ipados': 'iOS & iPadOS',
+    'ios and ipados': 'iOS and iPadOS',
+    'macos': 'macOS',
+    'tvos': 'tvOS',
+    'watchos': 'watchOS',
+    'api': 'API',
+    'api reference': 'API Reference',
+    'api docs': 'API Docs',
+    'sdk': 'SDK',
+    'mdm': 'MDM',
+    'emm': 'EMM',
+    'oem': 'OEM',
+    'sso': 'SSO',
+  };
+  function normalizeAllCapsTitle(title: string): string {
+    const alpha = title.replace(/[^a-zA-Z]/g, '');
+    // Only normalize if all alpha chars are uppercase and there's more than 1 letter
+    if (alpha.length <= 1 || alpha !== alpha.toUpperCase()) return title;
+    // Check special title mappings first
+    const lowerTrimmed = title.toLowerCase().trim();
+    if (SPECIAL_TITLE_MAP[lowerTrimmed]) return SPECIAL_TITLE_MAP[lowerTrimmed];
+    // Smart Title Case: handle known acronyms within the string
+    const ACRONYMS = new Set(['api', 'sdk', 'mdm', 'emm', 'oem', 'sso', 'vpn', 'usb', 'nfc', 'ota', 'apk', 'adb', 'dep', 'abm', 'asm', 'byod', 'saml']);
+    return title.toLowerCase().replace(/\b[a-z]+/g, word => {
+      if (ACRONYMS.has(word)) return word.toUpperCase();
+      // Special Apple-style casing
+      if (word === 'ios') return 'iOS';
+      if (word === 'ipados') return 'iPadOS';
+      if (word === 'macos') return 'macOS';
+      if (word === 'tvos') return 'tvOS';
+      if (word === 'watchos') return 'watchOS';
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    });
+  }
+  function normalizeTreeTitles(tree: Record<string, TreeNode>) {
+    for (const node of Object.values(tree)) {
+      node.title = normalizeAllCapsTitle(node.title);
+      if (Object.keys(node.children).length > 0) {
+        normalizeTreeTitles(node.children);
+      }
+    }
+  }
+  normalizeTreeTitles(root);
+
   // Apply CMS folder settings (label, icon, order) — these override document-level fields
   // Folder settings keys use paths like: src/content/en/docs/device-management/android
   function applyCmsFolderSettings(tree: Record<string, TreeNode>, parentSlug: string) {
@@ -464,6 +515,9 @@ function buildNavigation(docs: Document[]): NavGroup[] {
       if (settings) {
         if (settings.label) node.title = settings.label;
         if (settings.icon) node.icon = settings.icon;
+        // Mark that CMS has a setting for this folder — even if icon is empty,
+        // we should respect that and NOT let inferFolderIcon override it
+        node.cmsIconSet = true;
         if (settings.order != null && settings.order !== 0) node.order = settings.order;
         // If order is explicitly 0 and not already set from document, use it
         else if (settings.order === 0 && node.order == null) node.order = 0;
@@ -487,13 +541,19 @@ function buildNavigation(docs: Document[]): NavGroup[] {
         return a.title.localeCompare(b.title);
       })
       .map(([key, node]) => {
-        // Prefer platform-specific inferred icons over generic folder icons from CMS
-        const isGenericFolder = !node.icon ||
-          ['folder', 'folder-open', 'folder-tree', 'folder-plus'].includes(node.icon.toLowerCase());
-        const inferred = inferFolderIcon(key);
+        // If CMS folder settings exist for this node, respect the icon as-is
+        // (even if empty — the user chose not to set one, so use the default folder icon)
+        // Only infer platform-specific icons when there's NO CMS setting for this folder
+        let resolvedIcon = node.icon;
+        if (!node.cmsIconSet) {
+          const isGenericFolder = !node.icon ||
+            ['folder', 'folder-open', 'folder-tree', 'folder-plus'].includes(node.icon.toLowerCase());
+          const inferred = inferFolderIcon(key);
+          if (isGenericFolder && inferred) resolvedIcon = inferred;
+        }
         return {
           title: node.title,
-          icon: isGenericFolder && inferred ? inferred : node.icon,
+          icon: resolvedIcon,
           href: node.href,
           active: node.active,
           items: node.items,

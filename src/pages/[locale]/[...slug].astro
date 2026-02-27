@@ -121,6 +121,33 @@ function resolveFolderIcon(folderPath: string, docIcon?: string): string {
   return renderIconSvg('folder' as IconName, 'folder-card-icon-svg');
 }
 
+// ─── Normalize ALL CAPS titles from legacy CMS data ──────────────────
+// When the old CSS used text-transform:uppercase, stored titles didn't matter.
+// Now we display as-is, so normalize ALL CAPS → proper Title Case.
+const SPECIAL_TITLE_MAP: Record<string, string> = {
+  'ios': 'iOS', 'ipados': 'iPadOS', 'ios & ipados': 'iOS & iPadOS',
+  'ios and ipados': 'iOS and iPadOS', 'macos': 'macOS', 'tvos': 'tvOS',
+  'watchos': 'watchOS', 'api': 'API', 'api reference': 'API Reference',
+  'api docs': 'API Docs', 'sdk': 'SDK', 'mdm': 'MDM', 'emm': 'EMM',
+  'oem': 'OEM', 'sso': 'SSO',
+};
+const KNOWN_ACRONYMS = new Set(['api', 'sdk', 'mdm', 'emm', 'oem', 'sso', 'vpn', 'usb', 'nfc', 'ota', 'apk', 'adb', 'dep', 'abm', 'asm', 'byod', 'saml']);
+function normalizeAllCapsTitle(title: string): string {
+  const alpha = title.replace(/[^a-zA-Z]/g, '');
+  if (alpha.length <= 1 || alpha !== alpha.toUpperCase()) return title;
+  const lowerTrimmed = title.toLowerCase().trim();
+  if (SPECIAL_TITLE_MAP[lowerTrimmed]) return SPECIAL_TITLE_MAP[lowerTrimmed];
+  return title.toLowerCase().replace(/\b[a-z]+/g, word => {
+    if (KNOWN_ACRONYMS.has(word)) return word.toUpperCase();
+    if (word === 'ios') return 'iOS';
+    if (word === 'ipados') return 'iPadOS';
+    if (word === 'macos') return 'macOS';
+    if (word === 'tvos') return 'tvOS';
+    if (word === 'watchos') return 'watchOS';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  });
+}
+
 // ─── getStaticPaths — single data load, zero per-page API calls ──────
 
 type DocEntry = (Awaited<ReturnType<typeof getCollection>>)[0];
@@ -369,6 +396,10 @@ const fullDocument = (entry?.data || {
   draft: false,
 }) as DocData;
 
+// Normalize ALL CAPS titles from legacy CMS data on the page document
+if (fullDocument.title) fullDocument.title = normalizeAllCapsTitle(fullDocument.title);
+if (fullDocument.item_name && fullDocument.item_name !== 'null') fullDocument.item_name = normalizeAllCapsTitle(fullDocument.item_name);
+
 if (!isValidLocale(locale)) {
   return Astro.redirect(`/${defaultLocale}/`, 301);
 }
@@ -386,6 +417,29 @@ let cmsFolderSettings: FolderSettingsMap = {};
 try {
   cmsFolderSettings = await getFolderSettings();
 } catch { /* non-fatal */ }
+
+// Apply CMS folder settings label to the page heading (final override after normalization)
+if (isIndex && cmsFolderSettings && Object.keys(cmsFolderSettings).length > 0) {
+  const pageFolderPath = getIndexFolderPath(fullDocument);
+  if (pageFolderPath) {
+    const pageSlug = pageFolderPath.replace(/^src\/content\/[a-z]{2}\/docs\//, '').replace(/^content\/[a-z]{2}\/docs\//, '');
+    const pagePathVariants = [
+      `src/content/${locale}/docs/${pageSlug}`,
+      `content/${locale}/docs/${pageSlug}`,
+      `${locale}/docs/${pageSlug}`,
+      pageSlug,
+    ];
+    for (const variant of pagePathVariants) {
+      if (cmsFolderSettings[variant]?.label) {
+        fullDocument.title = cmsFolderSettings[variant].label;
+        if (fullDocument.item_name && fullDocument.item_name !== 'null') {
+          fullDocument.item_name = cmsFolderSettings[variant].label;
+        }
+        break;
+      }
+    }
+  }
+}
 
 // For index/archive pages, find child documents from the local store
 // The show_child_grid flag (default true) controls whether the grid renders
@@ -486,7 +540,7 @@ if (isIndex && showChildGrid) {
     const docIcon = archive.data.sidebar_icon || archive.data.icon;
     childFolders.push({
       id: archive.id,
-      title: archive.data.item_name || archive.data.title || 'Untitled',
+      title: normalizeAllCapsTitle(archive.data.item_name || archive.data.title || 'Untitled'),
       description: archive.data.description || '',
       href: getDocUrl({ ...archive.data, id: archive.id }, locale),
       icon: docIcon,
@@ -552,6 +606,11 @@ if (isIndex && showChildGrid) {
           // Re-resolve icon HTML with the CMS-provided icon
           const archiveFolderPath = pathVariants[0]; // Use the full src/content path
           folder.iconHtml = resolveFolderIcon(archiveFolderPath, settings.icon);
+        } else {
+          // CMS has a setting for this folder but icon is empty —
+          // use default folder icon, don't let inference override
+          folder.icon = 'folder';
+          folder.iconHtml = renderIconSvg('folder' as IconName, 'folder-card-icon-svg');
         }
         if (settings.order != null) folder.order = settings.order;
       }
