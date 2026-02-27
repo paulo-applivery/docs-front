@@ -63,6 +63,7 @@ interface Props {
 
   // Navigation
   currentPath?: string;
+  sourcePath?: string;
 
   // i18n
   locale?: Locale;
@@ -99,6 +100,7 @@ const {
   imageAlt,
   headings = [],
   currentPath,
+  sourcePath,
   locale: propLocale,
   availableTranslations = [],
   translationSlugs = {},
@@ -339,7 +341,9 @@ const currentIndex = flatNav.findIndex(item => decodeURIComponent(item.href).rep
 const prevPage = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined;
 const nextPage = currentIndex >= 0 && currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : undefined;
 
-const editUrl = settings?.navigation?.footer?.editUrl;
+const editUrl = sourcePath
+  ? `https://github.com/applivery/docs-front/edit/main/src/content/${sourcePath}`
+  : settings?.navigation?.footer?.editUrl;
 const hasFooter = !!(prevPage || nextPage || editUrl);
 
 // Build Article Schema for SEO/LLM optimization
