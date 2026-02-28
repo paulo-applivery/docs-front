@@ -21,12 +21,15 @@ function escapeXml(text: string): string {
 }
 
 // Helper to format date for RSS (RFC 822)
+// Use a fixed fallback date to keep builds deterministic
+const FALLBACK_DATE = new Date('2024-01-01T00:00:00Z').toUTCString();
+
 function formatRssDate(dateInput: string | Date | undefined): string {
-  if (!dateInput) return new Date().toUTCString();
+  if (!dateInput) return FALLBACK_DATE;
   try {
     return dateInput instanceof Date ? dateInput.toUTCString() : new Date(dateInput).toUTCString();
   } catch {
-    return new Date().toUTCString();
+    return FALLBACK_DATE;
   }
 }
 
@@ -70,7 +73,7 @@ export const GET: APIRoute = async ({ site }) => {
 
   const lastBuildDate = sortedDocs.length > 0
     ? formatRssDate(sortedDocs[0].data.updated_date || sortedDocs[0].data.pub_date || sortedDocs[0].data.date)
-    : new Date().toUTCString();
+    : FALLBACK_DATE;
 
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"

@@ -6,6 +6,12 @@
 import { marked } from 'marked';
 import { resolveMediaUrl } from './cms';
 
+// Deterministic counter for generating unique IDs (avoids Math.random() for build stability)
+let idCounter = 0;
+function nextId(prefix: string): string {
+  return `${prefix}${idCounter++}`;
+}
+
 // Configure marked for GFM
 marked.setOptions({
   gfm: true,
@@ -203,7 +209,7 @@ export function processMarkdown(content: string): string {
       const tabMatches = [...tabsContent.matchAll(/<Tab\s+title="([^"]+)">([\s\S]*?)<\/Tab>/g)];
       if (tabMatches.length === 0) return tabsContent;
 
-      const tabId = `tabs-${Math.random().toString(36).substring(2, 11)}`;
+      const tabId = nextId('tabs-');
 
       const tabButtons = tabMatches.map((m, i) =>
         `<button class="doc-tab-button${i === 0 ? ' active' : ''}" data-tab-trigger data-tab-index="${i}">${m[1]}</button>`
@@ -857,7 +863,7 @@ function renderSchemaBlock(schema: any, label: string, contentType?: string): st
     }
 
     const mimeType = contentType || 'application/json';
-    const tabId = `bp-tab-${Math.random().toString(36).substring(2, 9)}`;
+    const tabId = nextId('bp-tab-');
 
     return `<div class="api-body-params">
       <div class="api-body-header">
@@ -1044,7 +1050,7 @@ function renderApiRequest(body: any): string {
     bodyContent = `${desc}
     ${schema ? renderSchemaBlock(schema, 'Body Params', mt) : ''}`;
   } else {
-    const tabId = `req-${Math.random().toString(36).substring(2, 9)}`;
+    const tabId = nextId('req-');
     const tabs = mediaTypes.map((mt, i) =>
       `<button class="api-tab-btn${i === 0 ? ' active' : ''}" data-tab-trigger data-tab-index="${i}">${escapeHtml(mt)}</button>`
     ).join('');

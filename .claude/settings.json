@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(then has_bp_tab=true fi if diff \"$f\" \"$b2f\")",
+      "Bash(md5 /tmp/build1_dist/en/api/people/get-organizations-organizationid-people/index.html dist/en/api/people/get-organizations-organizationid-people/index.html)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}
