@@ -719,23 +719,19 @@ export interface FolderSettingsResponse {
 }
 
 /**
- * Fetch all folder settings from CMS
+ * Fetch all folder settings from CMS (cached per build)
  * Used by navigation to apply custom labels, icons, and order to folders
  */
+let _folderSettingsCache: FolderSettingsMap | null = null;
+
 export async function getFolderSettings(): Promise<FolderSettingsMap> {
+  if (_folderSettingsCache) return _folderSettingsCache;
   try {
-    console.log(
-      "CMS: Fetching folder settings from",
-      `${CMS_URL}/api/folders/all-settings`,
-    );
     const response = await cmsRequest<FolderSettingsResponse>(
       "/api/folders/all-settings",
     );
-    console.log(
-      "CMS: Folder settings response:",
-      JSON.stringify(response, null, 2),
-    );
-    return response.folderSettings || {};
+    _folderSettingsCache = response.folderSettings || {};
+    return _folderSettingsCache;
   } catch (error) {
     console.error("CMS: Failed to fetch folder settings:", error);
     return {};
