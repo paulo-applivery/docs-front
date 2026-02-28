@@ -11,7 +11,7 @@ import TableOfContents from "../components/TableOfContents.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import Footer from "../components/Footer.astro";
 import AIChat from "../components/AIChat.astro";
-import { getDocuments, getAllSettings, getFolderSettings, resolveMediaUrl, type Document, type FolderSettingsMap } from "../lib/cms";
+import { getDocuments, getAllSettings, getSettings, getFolderSettings, resolveMediaUrl, type Document, type FolderSettingsMap } from "../lib/cms";
 import { extractSlugFromPath, isIndexFile } from "../lib/doc-helpers";
 import { getCollection } from "astro:content";
 import {
@@ -341,9 +341,15 @@ const currentIndex = flatNav.findIndex(item => decodeURIComponent(item.href).rep
 const prevPage = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined;
 const nextPage = currentIndex >= 0 && currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : undefined;
 
-const editUrl = sourcePath
-  ? `https://github.com/applivery/docs-front/edit/main/src/content/${sourcePath}`
-  : settings?.navigation?.footer?.editUrl;
+let editUrl: string | undefined;
+try {
+  if (sourcePath) {
+    const github = await getSettings<{ owner?: string; repo?: string; branch?: string }>('github');
+    if (github?.owner && github?.repo) {
+      editUrl = `https://github.com/${github.owner}/${github.repo}/edit/${github.branch || 'main'}/${sourcePath}`;
+    }
+  }
+} catch { /* github settings not available */ }
 const hasFooter = !!(prevPage || nextPage || editUrl);
 
 // Build Article Schema for SEO/LLM optimization
