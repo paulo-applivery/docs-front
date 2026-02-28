@@ -389,7 +389,7 @@ export function processMarkdown(content: string): string {
   processed = processed.replace(
     /```(\w+)\s+title="([^"]+)"\n([\s\S]*?)```/g,
     (_, language, filename, code) => {
-      return `<div class="doc-code-block">
+      return stashHtml(`<div class="doc-code-block">
         <div class="doc-code-header">
           <span class="doc-code-filename">${filename}</span>
           <button class="doc-code-copy" data-copy-code>
@@ -398,7 +398,7 @@ export function processMarkdown(content: string): string {
           </button>
         </div>
         <pre><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>
-      </div>`;
+      </div>`);
     }
   );
 

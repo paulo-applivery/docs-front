@@ -516,6 +516,11 @@
     text-decoration: none;
   }
 
+  .article-content code::before,
+  .article-content code::after {
+    content: none;
+  }
+
   .article-content pre {
     position: relative;
     padding: 1rem;
@@ -942,6 +947,12 @@
     border-bottom: 1px solid var(--color-border);
     background: var(--color-background-secondary);
     overflow-x: auto;
+    scrollbar-width: none;           /* Firefox */
+    -ms-overflow-style: none;        /* IE/Edge */
+  }
+
+  .doc-tabs-header::-webkit-scrollbar {
+    display: none;                   /* Chrome/Safari */
   }
 
   .doc-tab-button {
