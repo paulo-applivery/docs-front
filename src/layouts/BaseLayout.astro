@@ -295,8 +295,8 @@ const darkInlineCodeText = colors?.darkInlineCodeText || '#e2e8f0';
 const brandBackgroundColor = '#000717';
 
 // Get typography
-const headingFont = typography?.headingFont || 'inter';
-const bodyFont = typography?.bodyFont || 'inter';
+const headingFont = typography?.headingFont || 'outfit';
+const bodyFont = typography?.bodyFont || 'outfit';
 const codeFont = typography?.codeFont || 'jetbrains-mono';
 
 // Font family mappings
@@ -451,8 +451,8 @@ const cssVars = `
     --color-background-brand: ${brandBackgroundColor};
 
     /* Typography */
-    --font-heading: ${fontFamilyMap[headingFont] || fontFamilyMap['inter']};
-    --font-body: ${fontFamilyMap[bodyFont] || fontFamilyMap['inter']};
+    --font-heading: ${fontFamilyMap[headingFont] || fontFamilyMap['outfit']};
+    --font-body: ${fontFamilyMap[bodyFont] || fontFamilyMap['outfit']};
     --font-code: ${fontFamilyMap[codeFont] || fontFamilyMap['jetbrains-mono']};
 
     /* Logo */
@@ -625,12 +625,12 @@ const cssVars = `
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     {/* Dynamic font loading based on CMS settings */}
     <link
-      href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(headingFont === 'inter' ? 'Inter' : headingFont === 'outfit' ? 'Outfit' : headingFont === 'roboto' ? 'Roboto' : headingFont === 'open-sans' ? 'Open Sans' : headingFont === 'lato' ? 'Lato' : headingFont === 'poppins' ? 'Poppins' : 'Inter')}:wght@400;500;600;700&display=swap`}
+      href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(headingFont === 'inter' ? 'Inter' : headingFont === 'outfit' ? 'Outfit' : headingFont === 'roboto' ? 'Roboto' : headingFont === 'open-sans' ? 'Open Sans' : headingFont === 'lato' ? 'Lato' : headingFont === 'poppins' ? 'Poppins' : 'Outfit')}:wght@400;500;600;700&display=swap`}
       rel="stylesheet"
     />
     {bodyFont !== headingFont && (
       <link
-        href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(bodyFont === 'inter' ? 'Inter' : bodyFont === 'outfit' ? 'Outfit' : bodyFont === 'roboto' ? 'Roboto' : bodyFont === 'open-sans' ? 'Open Sans' : bodyFont === 'lato' ? 'Lato' : bodyFont === 'poppins' ? 'Poppins' : 'Inter')}:wght@400;500;600;700&display=swap`}
+        href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(bodyFont === 'inter' ? 'Inter' : bodyFont === 'outfit' ? 'Outfit' : bodyFont === 'roboto' ? 'Roboto' : bodyFont === 'open-sans' ? 'Open Sans' : bodyFont === 'lato' ? 'Lato' : bodyFont === 'poppins' ? 'Poppins' : 'Outfit')}:wght@400;500;600;700&display=swap`}
         rel="stylesheet"
       />
     )}
