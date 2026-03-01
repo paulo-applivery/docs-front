@@ -11,7 +11,7 @@ import Icon from '../../components/Icon';
 import AIPoweredSearch from '../../components/AIPoweredSearch.astro';
 import type { IconName } from '../../lib/icons';
 import { getCollection } from 'astro:content';
-import { getDocuments, getAllSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText, type NavigationSettings } from '../../lib/cms';
+import { getDocuments, getAllSettings, getNavigationSettings, resolveMediaUrl, type Document, type HomeSettings, type LocalizedText, type NavigationSettings } from '../../lib/cms';
 import { readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import {
@@ -77,12 +77,14 @@ let documents: Document[] = [];
 let settings: Awaited<ReturnType<typeof getAllSettings>> | null = null;
 
 try {
-  const [docsResponse, settingsResponse] = await Promise.all([
+  const [docsResponse, settingsResponse, navResponse] = await Promise.all([
     getDocuments({ visible: true, limit: 2000, locale }),
     getAllSettings(),
+    getNavigationSettings(locale),
   ]);
   documents = docsResponse.documents;
   settings = settingsResponse;
+  if (navResponse) settings = { ...settings, navigation: navResponse } as typeof settings;
 
   // Fallback: if this locale has no docs, use English
   if (documents.length === 0 && locale !== defaultLocale) {

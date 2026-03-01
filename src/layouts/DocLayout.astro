@@ -11,7 +11,7 @@ import TableOfContents from "../components/TableOfContents.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import Footer from "../components/Footer.astro";
 import AIChat from "../components/AIChat.astro";
-import { getDocuments, getAllSettings, getSettings, getFolderSettings, resolveMediaUrl, type Document, type FolderSettingsMap } from "../lib/cms";
+import { getDocuments, getAllSettings, getSettings, getNavigationSettings, getFolderSettings, resolveMediaUrl, type Document, type FolderSettingsMap } from "../lib/cms";
 import { extractSlugFromPath, isIndexFile } from "../lib/doc-helpers";
 import { getCollection } from "astro:content";
 import {
@@ -148,20 +148,24 @@ try {
       sidebar_icon: d.data.sidebar_icon,
       headline: d.data.headline,
     })) as Document[];
-    const [settingsResponse, folderSettingsResponse] = await Promise.all([
+    const [settingsResponse, navResponse, folderSettingsResponse] = await Promise.all([
       getAllSettings(),
+      getNavigationSettings(currentLocale),
       getFolderSettings(),
     ]);
     settings = settingsResponse || null;
+    if (navResponse) settings = { ...settings, navigation: navResponse };
     folderSettings = folderSettingsResponse || {};
   } else {
-    const [docsResponse, settingsResponse, folderSettingsResponse] = await Promise.all([
+    const [docsResponse, settingsResponse, navResponse, folderSettingsResponse] = await Promise.all([
       getDocuments({ collection, locale: currentLocale, visible: true, limit: 2000 }),
       getAllSettings(),
+      getNavigationSettings(currentLocale),
       getFolderSettings(),
     ]);
     documents = docsResponse.documents;
     settings = settingsResponse;
+    if (navResponse) settings = { ...settings, navigation: navResponse };
     folderSettings = folderSettingsResponse || {};
   }
 } catch (error) {

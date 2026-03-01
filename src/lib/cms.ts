@@ -593,8 +593,41 @@ export interface SettingsResponse<T> {
 /**
  * Fetch settings by category
  */
-export async function getSettings<T>(category: SettingsCategory): Promise<T> {
+export async function getSettings<T>(category: SettingsCategory | string): Promise<T> {
   return cmsRequest<T>(`/api/settings?category=${category}`);
+}
+
+/**
+ * Fetch locale-specific navigation settings.
+ * Tries `navigation:{locale}` first, then falls back to legacy `navigation` category.
+ * Results are cached per locale for the duration of the build.
+ */
+const _navCache = new Map<string, NavigationSettings | null>();
+
+export async function getNavigationSettings(locale: string = 'en'): Promise<NavigationSettings | null> {
+  if (_navCache.has(locale)) {
+    return _navCache.get(locale)!;
+  }
+
+  let nav: NavigationSettings | null = null;
+
+  try {
+    nav = await getSettings<NavigationSettings>(`navigation:${locale}`);
+  } catch {
+    // ignore
+  }
+
+  // Fallback: for any locale, if locale-specific settings don't exist, try legacy 'navigation'
+  if (!nav || Object.keys(nav).length === 0) {
+    try {
+      nav = await getSettings<NavigationSettings>('navigation');
+    } catch {
+      nav = null;
+    }
+  }
+
+  _navCache.set(locale, nav);
+  return nav;
 }
 
 /**
